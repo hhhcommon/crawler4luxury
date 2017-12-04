@@ -17,7 +17,7 @@ public abstract class Component {
 
     public Component(String jobName) {
         this.jobName = jobName;
-        logger.info("=========任务名" + jobName + "开始启动=========");
+        logger.info("=========jobName===" + jobName + "===start=========");
     }
 
     /**

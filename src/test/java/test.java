@@ -1,6 +1,6 @@
 
 import crawler.SinaCrawler;
-import crawler.SinaCrawler2;
+import crawler.AlexanderMcQueenCrawler;
 import compone.Component;
 import factory.CrawlerComponent;
 
@@ -17,7 +17,7 @@ public class test {
     public static void main(String[] args) {
         Component component = CrawlerComponent.create("测试job");
         component.AddJob(new SinaCrawler())
-                .AddJob(new SinaCrawler2())
+                .AddJob(new AlexanderMcQueenCrawler())
                 .setInterval(60 * 60 * 24)
                 .run();
 

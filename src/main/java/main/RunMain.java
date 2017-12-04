@@ -2,7 +2,7 @@ package main;
 
 import compone.Component;
 import crawler.SinaCrawler;
-import crawler.SinaCrawler2;
+import crawler.AlexanderMcQueenCrawler;
 import factory.CrawlerComponent;
 
 /**
@@ -16,9 +16,8 @@ public class RunMain {
 
     public static void main(String[] args) {
         Component component = CrawlerComponent.create("mmpic job");
-        component.AddJob(new SinaCrawler())
-                .AddJob(new SinaCrawler2())
-                .setInterval(60 * 60 * 24)
+        component.AddJob(new AlexanderMcQueenCrawler())
+//                .setInterval(60 * 60 * 24)
                 .run();
     }
 
