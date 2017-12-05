@@ -19,7 +19,7 @@ import model.ProductsAttrs;
 public class _MappingKit {
 
     public static void mapping(ActiveRecordPlugin arp) {
-
+        arp.addMapping("product", "pkid", Product.class);
     }
 }
 

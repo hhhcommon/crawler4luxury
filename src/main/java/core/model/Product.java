@@ -26,4 +26,16 @@ public class Product extends BaseProduct<Product> {
     public String toString() {
         return "Product{} " + super.toString();
     }
+
+    /**
+     * 通过商品的code 找到商品
+     */
+    public Product findByCode(String code) {
+        String sql = "SELECT * FROM product WHERE  ref= ? ";
+        Product product = dao.findFirst(sql, code);
+        if (product != null) {
+            return product;
+        }
+        return null;
+    }
 }

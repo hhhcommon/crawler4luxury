@@ -1,5 +1,6 @@
 package main;
 
+import common.DbUtil;
 import compone.Component;
 import crawler.SinaCrawler;
 import crawler.AlexanderMcQueenCrawler;
@@ -15,8 +16,9 @@ import factory.CrawlerComponent;
 public class RunMain {
 
     public static void main(String[] args) {
-        Component component = CrawlerComponent.create("mmpic job");
-        component.AddJob(new AlexanderMcQueenCrawler())
+        DbUtil.init();
+        Component component = CrawlerComponent.create("luxury job");
+        component.AddJob(new AlexanderMcQueenCrawler(5))
 //                .setInterval(60 * 60 * 24)
                 .run();
     }

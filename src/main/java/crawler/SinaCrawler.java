@@ -82,6 +82,7 @@ public class SinaCrawler extends BaseCrawler implements PageProcessor {
         logger.info("============SinaCrawler start=============");
         Spider spider = Spider.create(new SinaCrawler(threadDept))
                 .addUrl("http://www.biread.net/forum-37-1.html")
+                .thread(threadDept)
                 .addPipeline(new SinaPipeline());
         setSpider(spider);
         spider.start();

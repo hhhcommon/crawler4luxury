@@ -5,12 +5,13 @@ import com.alibaba.fastjson.JSON;
 import com.google.common.base.Joiner;
 import common.HttpRequestUtil;
 import common.RegexUtil;
-import core.model.Alexandermcqueen;
-import core.model.ColorAlexander;
+import model.Alexandermcqueen;
+import model.ColorAlexander;
 import core.model.Product;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
+import pipeline.AlexanderMcQueenCrawlerPipeline;
 import us.codecraft.webmagic.Page;
 import us.codecraft.webmagic.Site;
 import us.codecraft.webmagic.Spider;
@@ -42,7 +43,7 @@ public class AlexanderMcQueenCrawler extends BaseCrawler implements PageProcesso
     }
 
     public void process(Page page) {
-        logger.info("process>>>>>>>" + page.getUrl());
+        logger.info("process>>>>>>>>>>>" + page.getUrl());
         List<String> requestList = new ArrayList<>();
         //每页获取 每个详情页
         Elements elements = page.getHtml().getDocument().select("#llmnwmn > div > section > article");
@@ -189,8 +190,9 @@ public class AlexanderMcQueenCrawler extends BaseCrawler implements PageProcesso
     }
 
     public void run() {
+        logger.info("============ Alexandermcqueen Crawler start=============");
         List<String> urlList = new ArrayList<>();
-        for (int i = 1; i <= 2; i++) {
+        for (int i = 1; i <= 20; i++) {
             String HkUrl =
                     "http://www.alexandermcqueen.com/Search/RenderProducts?ytosQuery=true&department=llmnwmn&gender=D%2CU%2CE&agerange=adult&page="
                             + i
@@ -208,15 +210,17 @@ public class AlexanderMcQueenCrawler extends BaseCrawler implements PageProcesso
                             + i
                             + "&productsPerPage=50&suggestion=false&textSearch=*%3A*&totalPages=8&totalItems=391&partialLoadedItems=50&itemsToLoadOnNextPage=50&siteCode=ALEXANDERMCQUEEN_CN";
             //将所有的url添加进去
+            urlList.add(cnurl);
             urlList.add(HkUrl);
             urlList.add(deUrl);
             urlList.add(gbUrl);
-            urlList.add(cnurl);
+
         }
-        logger.info("============SinaCrawler start=============");
+        logger.info("============ Alexandermcqueen Urls ready=============");
         Spider spider = Spider.create(new AlexanderMcQueenCrawler(threadDept))
-                .addUrl((String[]) urlList.toArray(new String[urlList.size()]));
-        //.addPipeline(new SinaPipeline());
+                .addUrl((String[]) urlList.toArray(new String[urlList.size()]))
+                .thread(threadDept)
+                .addPipeline(new AlexanderMcQueenCrawlerPipeline());
         setSpider(spider);
         spider.start();
     }
