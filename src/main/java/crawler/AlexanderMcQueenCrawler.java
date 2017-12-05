@@ -11,7 +11,7 @@ import core.model.Product;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-import pipeline.AlexanderMcQueenCrawlerPipeline;
+import pipeline.CrawlerPipeline;
 import us.codecraft.webmagic.Page;
 import us.codecraft.webmagic.Site;
 import us.codecraft.webmagic.Spider;
@@ -220,7 +220,7 @@ public class AlexanderMcQueenCrawler extends BaseCrawler implements PageProcesso
         Spider spider = Spider.create(new AlexanderMcQueenCrawler(threadDept))
                 .addUrl((String[]) urlList.toArray(new String[urlList.size()]))
                 .thread(threadDept)
-                .addPipeline(new AlexanderMcQueenCrawlerPipeline());
+                .addPipeline(new CrawlerPipeline());
         setSpider(spider);
         spider.start();
     }

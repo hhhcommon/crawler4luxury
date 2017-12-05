@@ -10,7 +10,7 @@
     <file url="file://$PROJECT_DIR$/src/main/java/core/model/_MappingKit.java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/src/main/java/core/model/base/BaseProduct.java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/src/main/java/crawler/AlexanderMcQueenCrawler.java" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/src/main/java/crawler/BurberryCrawler.java" charset="GBK" />
+    <file url="file://$PROJECT_DIR$/src/main/java/crawler/BurberryCrawler.java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/src/main/java/crawler/SinaCrawler.java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/src/main/java/model/Alexandermcqueen.java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/src/main/java/model/BurFinal.java" charset="GBK" />

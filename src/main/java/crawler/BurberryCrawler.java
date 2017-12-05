@@ -7,16 +7,17 @@ import com.google.common.base.Joiner;
 import common.HttpRequestUtil;
 import common.RegexUtil;
 import core.model.Product;
-import model.BurFinal;
-import model.Burberry;
-import pipeline.AlexanderMcQueenCrawlerPipeline;
+import model.BurBerryItem;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
+import pipeline.CrawlerPipeline;
 import us.codecraft.webmagic.Page;
 import us.codecraft.webmagic.Site;
 import us.codecraft.webmagic.Spider;
 import us.codecraft.webmagic.processor.PageProcessor;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -27,30 +28,57 @@ public class BurberryCrawler extends BaseCrawler implements PageProcessor {
 
     private final static Logger logger = Logger.getLogger(String.valueOf(BurberryCrawler.class));
 
-    static String fireg2 = "https://cn.burberry.com/service/product-listing/search/.query=.*?offset=.*\\d+";
+    private static String senced = "https://cn.burberry.com/service/\\w+/\\w+/\\w+/.*?.=\\d+";
 
-    static String reg = "https://cn.burberry.com/.*p\\d+";
+    private static String reg = "https://cn.burberry.com/.*p\\d+";
 
-    static String finalReg = "https://cn.burberry.com/service/products/.*?id=.*cat.*";
 
     public BurberryCrawler(int crawlPath) {
         this.threadDept = crawlPath;
     }
 
-
     @Override
     public void run() {
         logger.info("============ BurberryCrawler Crawler start=============");
-        List<String> urlList = new ArrayList<>();
-        for (int i = 0; i <= 6000; i = i + 40) {
-            String url =
-                    "https://cn.burberry.com/service/product-listing/search/?query=*%3A*&order_by=numprop%3Adescending%3Aprice&limit=40&offset="
-                            + i + "&_=1512443746131";
-            urlList.add(url);
-        }
+        List<String> urls = new ArrayList<>();
+        /**
+         * Â•≥Â£´ÁöÑ
+         */
+        urls.add("https://cn.burberry.com/service/shelf/women/sale/all-sale/coats/?_=1512464008454");
+        urls.add("https://cn.burberry.com/service/shelf/women/sale/all-sale/jackets/?_=1512464008455");
+        urls.add("https://cn.burberry.com/service/shelf/women/sale/all-sale/dresses/?_=1512464008456");
+        urls.add("https://cn.burberry.com/service/shelf/women/sale/all-sale/knitwear-sweatshirts/?_=1512464008457");
+        urls.add("https://cn.burberry.com/service/shelf/women/sale/all-sale/shirts-tops/?_=1512464008458");
+        urls.add("https://cn.burberry.com/service/shelf/women/sale/all-sale/skirts-trousers/?_=1512464008459");
+        urls.add("https://cn.burberry.com/service/shelf/women/sale/all-sale/ponchos-capes/?_=1512464008460");
+        urls.add("https://cn.burberry.com/service/shelf/women/sale/all-sale/bags/?_=1512464008461");
+        urls.add("https://cn.burberry.com/service/shelf/women/sale/all-sale/shoes/?_=1512464008462");
+        urls.add("https://cn.burberry.com/service/shelf/women/sale/all-sale/scarves/?_=1512464008463");
+        urls.add("https://cn.burberry.com/service/shelf/women/sale/all-sale/wallets/?_=1512464008464");
+        urls.add("https://cn.burberry.com/service/shelf/women/sale/all-sale/small-accessories/?_=1512464008465");
+        urls.add("https://cn.burberry.com/service/shelf/women/sale/all-sale/swimwear/?_=1512464008465");
+
+        /**
+         * Áî∑Â£´ÁöÑ
+         */
+        urls.add("https://cn.burberry.com/service/shelf/men/sale/all-sale/coats/?_=1512464406668");
+        urls.add("https://cn.burberry.com/service/shelf/men/sale/all-sale/jackets/?_=1512464406669");
+        urls.add("https://cn.burberry.com/service/shelf/men/sale/all-sale/suits-blazers/?_=1512464406670");
+        urls.add("https://cn.burberry.com/service/shelf/men/sale/all-sale/casual-shirts/?_=1512464406671");
+        urls.add("https://cn.burberry.com/service/shelf/men/sale/all-sale/formal-shirts/?_=1512464406672");
+        urls.add("https://cn.burberry.com/service/shelf/men/sale/all-sale/knitwear-sweatshirts/?_=1512464406673");
+        urls.add("https://cn.burberry.com/service/shelf/men/sale/all-sale/polos-t-shirts/?_=1512464406674");
+        urls.add("https://cn.burberry.com/service/shelf/men/sale/all-sale/jeans-trousers/?_=1512464406675");
+        urls.add("https://cn.burberry.com/service/shelf/men/sale/all-sale/jeans-trousers/?_=1512464406675");
+        urls.add("https://cn.burberry.com/service/shelf/men/sale/all-sale/scarves/?_=1512464406676");
+        urls.add("https://cn.burberry.com/service/shelf/men/sale/all-sale/wallets/?_=1512464406677");
+        urls.add("https://cn.burberry.com/service/shelf/men/sale/all-sale/ties/?_=1512464406678");
+        urls.add("https://cn.burberry.com/service/shelf/men/sale/all-sale/shoes/?_=1512464406679");
+        urls.add("https://cn.burberry.com/service/shelf/men/sale/all-sale/swimwear/?_=1512464008465");
+
         Spider spider = Spider.create(new BurberryCrawler(threadDept))
-                .addUrl((String[]) urlList.toArray(new String[urlList.size()]))
-                .addPipeline(new AlexanderMcQueenCrawlerPipeline())
+                .addUrl("https://cn.burberry.com/service/shelf/women/sale/all-sale/coats/?_=1512464008454")
+                .addPipeline(new CrawlerPipeline())
                 .thread(threadDept);
         setSpider(spider);
         spider.start();
@@ -60,29 +88,17 @@ public class BurberryCrawler extends BaseCrawler implements PageProcessor {
     public void process(Page page) {
         logger.info("process>>>>>>>>>>>" + page.getUrl());
         try {
-            if (page.getUrl().regex(fireg2).match()) {
-                Burberry burberry = JSON.parseObject(page.getHtml().toString(), Burberry.class);
-                if (burberry.getShelves().size() > 0) {
-                    List<Burberry.ShelvesBean.ShelfElementsBean> shelfElementsBeans =
-                            burberry.getShelves().get(0).getShelfElements();
-                    for (Burberry.ShelvesBean.ShelfElementsBean shelfElementsBean : shelfElementsBeans) {
-                        page.addTargetRequest("https://cn.burberry.com" + shelfElementsBean.getLink());
+            if (page.getUrl().regex(senced).match()) {
+                List<BurBerryItem> burberry = JSON.parseArray(RegexUtil.getDataByRegex("<body>(.*?)</body>", page.getHtml().css("body").toString()), BurBerryItem.class);
+                if (burberry != null) {
+                    for (BurBerryItem burBerryItem : burberry) {
+                        String link = "https://cn.burberry.com" + burBerryItem.getLink();
+                        logger.info("Âä†ÂÖ•ÈááÈõÜÈòüÂàó>>>>>" + link);
+                        page.addTargetRequest(link);
                     }
                 }
             }
-
-            if (page.getUrl().regex(reg).match()) {
-                String catCode =
-                        RegexUtil.getDataByRegex("data-atg-category-id=\"(.*?)\" data-currency-code=\"CNY", page.getHtml().toString());
-                String shortUrl = RegexUtil.getDataByRegex("data-default-url=\"(.*?)\"", page.getHtml().toString());
-                String id = RegexUtil.getDataByRegex("data-product-id=\"(.*?)\"", page.getHtml().toString());
-                String url = "https://cn.burberry.com/service/products" + shortUrl + "?id=" + id + "&categoryId="
-                        + catCode + "&_=1498022990033";
-                logger.info("º”»ÎµΩœ¬“ª¡–===" + url);
-                page.addTargetRequest(url);
-            }
-
-            if (page.getUrl().regex(finalReg).match()) {// ¥¶¿Ì“≥
+            if (page.getUrl().regex(reg).match()) {// Â§ÑÁêÜÈ°µ
                 Product product = analyticalData(page);
                 if (product != null) {
                     page.putField("product", product);
@@ -90,59 +106,65 @@ public class BurberryCrawler extends BaseCrawler implements PageProcessor {
             }
 
         } catch (Exception e) {
-            logger.info("◊™ªØjson ß∞‹=====" + page.getUrl() + e.toString());
-            logger.info("◊™ªØjson ß∞‹µƒjson◊÷∑˚¥Æ====" + page.getHtml());
+            logger.info("ÂºÇÂ∏∏‰ø°ÊÅØ" + e.toString());
+            logger.info("ËΩ¨ÂåñjsonÂ§±Ë¥•>>>>>>>" + page.getUrl());
         }
     }
 
+    /**
+     * Ëß£ÊûêÊï∞ÊçÆ
+     *
+     * @param page
+     * @return
+     */
     public Product analyticalData(Page page) {
         Product product = new Product();
-        BurFinal burFinal = JSON.parseObject(page.getHtml().toString(), BurFinal.class);
+        Document document = page.getHtml().getDocument();
         product.setBrand("burberry");
         product.setLanguage("zh_CN");
-        product.setUrl("https://cn.burberry.com" + burFinal.getDefaultUrl());
-        product.setName(burFinal.getName());
-
+        product.setUrl(page.getUrl().toString());
+        product.setName(document.getElementsByClass("product-purchase_name").first().text());
         List<String> temp = new ArrayList<String>();
-        if (burFinal.getHdCarousel() != null && burFinal.getHdCarousel().size() > 0) {
-            for (BurFinal.HdCarouselBean b : burFinal.getHdCarousel()) {
-                temp.add("http:" + b.getImg().getSrc().toString());
+        //Ëé∑ÂèñÂõæÁâá
+        Elements imgEl = document.getElementsByClass("product-carousel_item");
+        if (imgEl != null && imgEl.size() > 0) {
+            for (Element element : imgEl) {
+                String img = element.getElementsByTag("img").attr("src");
+                temp.add(img);
             }
         }
         product.setImg(Joiner.on("|").join(temp));
+        product.setPrice(document.getElementsByClass("product-purchase_price").first().text());
+        product.setRef(RegexUtil.getDataByRegex("\\d+", document.getElementsByClass("product-purchase_item-number").first().text()));
+        product.setIntroduction(document.getElementsByClass("accordion-tab_content").first().text());
 
-        product.setPrice(String.valueOf(burFinal.getPrice()));
-        product.setRef(burFinal.getItemNumber());
-        product.setIntroduction(burFinal.getDescription().getContent());
-        if (burFinal.getFindInStore().getSize() != null) {
-            if (burFinal.getFindInStore().getSize().getItems().size() > 0) {
+        try {
+            Elements sizeEl = document.select("label.product-purchase_option");
+
+            if (sizeEl != null && sizeEl.size() > 0) {
                 List<String> list = new ArrayList<String>();
-                for (BurFinal.FindInStoreBean.SizeBean.ItemsBean itemsBean : burFinal.getFindInStore()
-                        .getSize()
-                        .getItems()) {
-                    if (itemsBean.isIsAvailable()) {
-                        list.add(itemsBean.getLabel());
-                    }
+                for (Element element : sizeEl) {
+                    list.add(element.text());
                 }
                 product.setSize(Joiner.on("|").join(list));
-            }
-        }
 
-        if (burFinal.getOptions().size() > 0) {
-            List<String> list = new ArrayList<String>();
-            for (BurFinal.OptionsBean itemsBean : burFinal.getOptions()) {
-                if (itemsBean.getLabel().equals("—’…´")) {
-                    for (BurFinal.OptionsBean.ItemsBeanX itemsBeanX : itemsBean.getItems()) {
-                        if (itemsBeanX.isIsAvailable()) {
-                            list.add(itemsBeanX.getLabel());
-                        }
-                    }
+            }
+
+            Element colorEl = document.select("div.product-purchase_options").first();
+            if (colorEl != null) {
+                List<String> list = new ArrayList<String>();
+                Elements colors = colorEl.getElementsByTag("span");
+                for (Element element : colors) {
+                    String color = element.getElementsByTag("a").first().getElementsByTag("img").attr("title");
+                    list.add(color);
                 }
+                product.setColor(Joiner.on("|").join(list));
             }
-            product.setColor(Joiner.on("|").join(list));
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
-        // ªÒ»°œ„∏€º€∏Ò
+        // Ëé∑ÂèñÈ¶ôÊ∏Ø‰ª∑Ê†º
         String hkUrl = product.getUrl().replace("cn", "hk");
         try {
             String html = HttpRequestUtil.sendGet(hkUrl);
@@ -152,7 +174,7 @@ public class BurberryCrawler extends BaseCrawler implements PageProcessor {
             e.printStackTrace();
         }
 
-        // ªÒ»°µ¬π˙º€∏Ò
+        // Ëé∑ÂèñÂæ∑ÂõΩ‰ª∑Ê†º
 
         String deUrl = product.getUrl().replace("cn", "de");
         try {
@@ -163,7 +185,7 @@ public class BurberryCrawler extends BaseCrawler implements PageProcessor {
             e.printStackTrace();
         }
 
-        // ªÒ»°”¢π˙º€∏Ò
+        // Ëé∑ÂèñËã±ÂõΩ‰ª∑Ê†º
 
         String enUrl = product.getUrl().replace("cn", "uk");
         try {
@@ -173,15 +195,15 @@ public class BurberryCrawler extends BaseCrawler implements PageProcessor {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        System.out.println(product.toString());
         return product;
     }
 
 
     @Override
     public Site getSite() {
-        site = Site.me().setDomain("cn.burberry.com")
-                .setUserAgent("Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.86 Safari/537.36")
+        site = Site.me()
+                .setDomain("cn.burberry.com")
+                .setUserAgent("Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.9 Safari/537.36")
                 .addHeader("Accept", "application/json, text/javascript, */*; q=0.01")
                 .addHeader("Accept-Encoding", "gzip, deflate, br")
                 .addHeader("X-Requested-With", "XMLHttpRequest")
@@ -193,7 +215,7 @@ public class BurberryCrawler extends BaseCrawler implements PageProcessor {
     }
 
     /**
-     * ªÒ»°Õ¯’æµƒ x-csrf-token
+     * Ëé∑ÂèñÁΩëÁ´ôÁöÑ x-csrf-token
      *
      * @return
      */

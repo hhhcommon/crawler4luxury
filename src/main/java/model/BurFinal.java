@@ -1546,7 +1546,7 @@ public class BurFinal {
              * hideDetailsLabel : 隐藏详情
              * unableToDisplayTitle : 无法显示地图
              * unableToDisplayDescription : 由于百度无法提供选定国家的地图，因此我们无法为您显示该地理位置的更多详细信息。
-             * 请浏览店铺列表，以获取更多店铺信息。
+             请浏览店铺列表，以获取更多店铺信息。
              */
 
             private String detailsLabel;
@@ -2143,7 +2143,19 @@ public class BurFinal {
     }
 
     public static class OptionsBean {
-
+        /**
+         * label : 颜色
+         * type : colour
+         * currentValue : 45459581
+         * renderingType : swatch
+         * items : [{"label":"黑色","value":"45459581","isAvailable":true,"link":"/asymmetric-sweatshirt-dress-p45459581","imageLink":"//assets.burberry.com/is/image/Burberryltd/1467c2750992e70fa001c45881dff1f33dff71b0.jpg"}]
+         * description : 选择尺码
+         * standardSleeveSize : 标准袖长款式
+         * shorterSleeveSize : 较短袖长款式（短 3cm）
+         * hasShorterSleeveSizes : false
+         * errorLabel : 请选择尺码
+         * link : 尺码指南
+         */
 
         private String label;
         private String type;
@@ -2246,6 +2258,13 @@ public class BurFinal {
         }
 
         public static class ItemsBeanX {
+            /**
+             * label : 黑色
+             * value : 45459581
+             * isAvailable : true
+             * link : /asymmetric-sweatshirt-dress-p45459581
+             * imageLink : //assets.burberry.com/is/image/Burberryltd/1467c2750992e70fa001c45881dff1f33dff71b0.jpg
+             */
 
             private String label;
             private String value;

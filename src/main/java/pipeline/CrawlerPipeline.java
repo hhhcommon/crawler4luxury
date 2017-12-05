@@ -11,11 +11,11 @@ import java.util.logging.Logger;
 /**
  * @Author: yang
  * @Date: 2017/12/4.17:58
- * @Desc: AlexanderMcQueenCrawlerPipeline 存储数据
+ * @Desc: CrawlerPipeline 存储数据
  */
-public class AlexanderMcQueenCrawlerPipeline implements Pipeline {
+public class CrawlerPipeline implements Pipeline {
 
-    private static Logger logger = Logger.getLogger(String.valueOf(AlexanderMcQueenCrawlerPipeline.class));
+    private static Logger logger = Logger.getLogger(String.valueOf(CrawlerPipeline.class));
 
     @Override
     public void process(ResultItems resultItems, Task task) {
