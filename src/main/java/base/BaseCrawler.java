@@ -12,6 +12,10 @@ import java.util.logging.Logger;
  */
 public abstract class BaseCrawler implements Runnable {
 
+    public BaseCrawler(int threadDept) {
+        this.threadDept = threadDept;
+    }
+
     protected static Logger logger = Logger.getLogger(String.valueOf(BaseCrawler.class));
     /**
      * 线程数

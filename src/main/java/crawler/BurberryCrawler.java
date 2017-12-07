@@ -34,7 +34,11 @@ public class BurberryCrawler extends BaseCrawler implements PageProcessor {
 
 
     public BurberryCrawler(int crawlPath) {
-        this.threadDept = crawlPath;
+        super(crawlPath);
+    }
+
+    public static void main(String[] args) {
+        new BurberryCrawler(1).run();
     }
 
     @Override
@@ -77,7 +81,7 @@ public class BurberryCrawler extends BaseCrawler implements PageProcessor {
         urls.add("https://cn.burberry.com/service/shelf/men/sale/all-sale/swimwear/?_=1512464008465");
 
         Spider spider = Spider.create(new BurberryCrawler(threadDept))
-                .addUrl("https://cn.burberry.com/service/shelf/women/sale/all-sale/coats/?_=1512464008454")
+                .addUrl((String[]) urls.toArray(new String[urls.size()]))
                 .addPipeline(new CrawlerPipeline())
                 .thread(threadDept);
         setSpider(spider);
@@ -135,7 +139,7 @@ public class BurberryCrawler extends BaseCrawler implements PageProcessor {
         }
         product.setImg(Joiner.on("|").join(temp));
         product.setPrice(document.getElementsByClass("product-purchase_price").first().text());
-        product.setRef(RegexUtil.getDataByRegex("\\d+", document.getElementsByClass("product-purchase_item-number").first().text()));
+        product.setRef(RegexUtil.getDataByRegex("(\\d+)", document.getElementsByClass("product-purchase_item-number").first().text()));
         product.setIntroduction(document.getElementsByClass("accordion-tab_content").first().text());
 
         try {

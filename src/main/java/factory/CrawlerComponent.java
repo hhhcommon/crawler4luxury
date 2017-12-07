@@ -2,6 +2,7 @@ package factory;
 
 import compone.Component;
 import base.BaseCrawler;
+import io.netty.util.internal.ObjectUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,12 +32,14 @@ public class CrawlerComponent extends Component {
 
     @Override
     public Component AddJob(BaseCrawler c) {
+        ObjectUtil.checkNotNull(c, "BaseCrawler");
         crawlerList.add(c);
         return this;
     }
 
     @Override
     public Component AddJob(List<BaseCrawler> list) {
+        ObjectUtil.checkNotNull(list, "BaseCrawlerlist");
         crawlerList = list;
         return this;
     }
@@ -44,6 +47,7 @@ public class CrawlerComponent extends Component {
 
     @Override
     public Component RemoveJob(BaseCrawler c) {
+        ObjectUtil.checkNotNull(c, "RemoveJobBaseCrawler");
         crawlerList.remove(c);
         return this;
     }

@@ -36,10 +36,12 @@ public class AlexanderMcQueenCrawler extends BaseCrawler implements PageProcesso
     private static String hkreg = "http://www.alexandermcqueen.com/.*?/alexandermcqueen/.*.html#dept=\\w+";
 
     public AlexanderMcQueenCrawler(int threadDept) {
+        super(threadDept);
         this.threadDept = threadDept;
     }
 
     public AlexanderMcQueenCrawler() {
+        super(1);
     }
 
     public void process(Page page) {

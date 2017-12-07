@@ -20,10 +20,12 @@ import java.util.List;
  */
 public class SinaCrawler extends BaseCrawler implements PageProcessor {
     public SinaCrawler(int threadDept) {
+        super(threadDept);
         this.threadDept = threadDept;
     }
 
     public SinaCrawler() {
+        super(1);
     }
 
     @Override
