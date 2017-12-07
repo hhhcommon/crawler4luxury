@@ -25,7 +25,7 @@ import java.util.List;
  * @Date: 2017/12/7.10:13
  * @Desc: 中国网站没有商品
  */
-public class ChristianLouboutinCarwler extends BaseCrawler implements PageProcessor {
+public class ChristianLouboutinCarwler extends BaseCrawler {
 
     private static final String reg = "http://.*?.christianlouboutin.com/.*?/catalogsearch/.*?";
 

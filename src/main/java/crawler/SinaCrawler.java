@@ -18,7 +18,7 @@ import java.util.List;
  * @Date: 2017/12/1.16:57
  * @desc: 新浪爬虫测试
  */
-public class SinaCrawler extends BaseCrawler implements PageProcessor {
+public class SinaCrawler extends BaseCrawler {
     public SinaCrawler(int threadDept) {
         super(threadDept);
         this.threadDept = threadDept;

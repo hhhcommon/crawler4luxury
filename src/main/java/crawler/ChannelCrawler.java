@@ -29,7 +29,7 @@ import java.util.List;
  * @Date: 2017/12/5.18:02
  * @Desc: 香奈儿 爬虫
  */
-public class ChannelCrawler extends BaseCrawler implements PageProcessor {
+public class ChannelCrawler extends BaseCrawler {
 
     private static String reg = "http://www.chanel.com/(.*?)/fashion/products/(.*?)/.*[A-Z]{1}\\d{5}[A-Z]{1}\\d{5}\\w{5}.*";
     /**

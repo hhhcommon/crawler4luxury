@@ -2,6 +2,7 @@ package base;
 
 import us.codecraft.webmagic.Site;
 import us.codecraft.webmagic.Spider;
+import us.codecraft.webmagic.processor.PageProcessor;
 
 import java.util.logging.Logger;
 
@@ -10,7 +11,7 @@ import java.util.logging.Logger;
  * @Date: 2017/12/1.16:59
  * @desc: 爬虫基类
  */
-public abstract class BaseCrawler implements Runnable {
+public abstract class BaseCrawler implements Runnable, PageProcessor {
 
     public BaseCrawler(int threadDept) {
         this.threadDept = threadDept;

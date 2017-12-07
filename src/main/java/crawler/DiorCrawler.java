@@ -25,7 +25,7 @@ import java.util.logging.Logger;
  * @Date: 2017/12/7.11:17
  * @Desc: DiorCrawler
  */
-public class DiorCrawler extends BaseCrawler implements PageProcessor {
+public class DiorCrawler extends BaseCrawler {
     final static Logger logger = Logger.getLogger(String.valueOf(DiorCrawler.class));
     /**
      * 存储 nav的链接
@@ -132,7 +132,8 @@ public class DiorCrawler extends BaseCrawler implements PageProcessor {
                     page.putField("product", product);
                 }
             } catch (Exception e) {
-                logger.info("转化错误的json>>>>" + json);
+                logger.info("转化错误>>>>>");
+//                logger.info("转化错误的json>>>>" + json);
             }
         }
     }

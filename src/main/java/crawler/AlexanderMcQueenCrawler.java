@@ -28,7 +28,7 @@ import java.util.logging.Logger;
  * @Date: 2017/12/1.16:57
  * @desc: AlexanderMcQueenCrawler
  */
-public class AlexanderMcQueenCrawler extends BaseCrawler implements PageProcessor {
+public class AlexanderMcQueenCrawler extends BaseCrawler {
     private final static Logger logger = Logger.getLogger(String.valueOf(AlexanderMcQueenCrawler.class));
 
     private static String reg = "http://www.alexandermcqueen.cn/.*?/alexandermcqueen/.*.html#dept=\\w+";

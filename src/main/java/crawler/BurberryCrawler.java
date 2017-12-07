@@ -15,7 +15,6 @@ import pipeline.CrawlerPipeline;
 import us.codecraft.webmagic.Page;
 import us.codecraft.webmagic.Site;
 import us.codecraft.webmagic.Spider;
-import us.codecraft.webmagic.processor.PageProcessor;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,7 +23,7 @@ import java.util.logging.Logger;
 /**
  * Created by yang on 2017/6/21.
  */
-public class BurberryCrawler extends BaseCrawler implements PageProcessor {
+public class BurberryCrawler extends BaseCrawler {
 
     private final static Logger logger = Logger.getLogger(String.valueOf(BurberryCrawler.class));
 
