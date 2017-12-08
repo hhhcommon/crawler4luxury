@@ -17,6 +17,10 @@ public abstract class BaseCrawler implements Runnable, PageProcessor {
         this.threadDept = threadDept;
     }
 
+    public BaseCrawler(Site site) {
+        this.site = site;
+    }
+
     protected static Logger logger = Logger.getLogger(String.valueOf(BaseCrawler.class));
     /**
      * 线程数

@@ -17,7 +17,6 @@ import us.codecraft.webmagic.Page;
 import us.codecraft.webmagic.Site;
 import us.codecraft.webmagic.Spider;
 import us.codecraft.webmagic.downloader.HttpClientDownloader;
-import us.codecraft.webmagic.processor.PageProcessor;
 import us.codecraft.webmagic.proxy.Proxy;
 import us.codecraft.webmagic.proxy.SimpleProxyProvider;
 
@@ -35,16 +34,16 @@ public class ChannelCrawler extends BaseCrawler {
     /**
      * 存储 http://www.chanel.com/zh_CN/fashion/products/eyewear.html 这样的链接
      */
-    private static List<String> requestUrlDeep = new ArrayList<>();
+    private List<String> requestUrlDeep = new ArrayList<>();
     /**
      * 存储 http://www.chanel.com/zh_CN/fashion/products/ready-to-wear/g.cruise-2017-18.c.18C.html 这种类型的链接
      */
-    private static List<String> requestUrlContent = new ArrayList<>();
+    private List<String> requestUrlContent = new ArrayList<>();
 
     /**
      * 存储 最终的内容链接
      */
-    private static List<String> requestUrlFinal = new ArrayList<>();
+    private List<String> requestUrlFinal = new ArrayList<>();
 
     public ChannelCrawler(int dept) {
         super(dept);

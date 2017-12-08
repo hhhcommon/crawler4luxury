@@ -14,7 +14,6 @@ import pipeline.CrawlerPipeline;
 import us.codecraft.webmagic.Page;
 import us.codecraft.webmagic.Site;
 import us.codecraft.webmagic.Spider;
-import us.codecraft.webmagic.processor.PageProcessor;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,11 +29,13 @@ public class DiorCrawler extends BaseCrawler {
     /**
      * 存储 nav的链接
      */
-    private static List<String> requestUrlNavs = new ArrayList<>();
+    private List<String> requestUrlNavs = new ArrayList<>();
     /**
      * 存储 商品链接
      */
-    private static List<String> requestUrldeep = new ArrayList<>();
+    private List<String> requestUrldeep = new ArrayList<>();
+
+    private List<String> urls = new ArrayList<>();
 
     public DiorCrawler(int threadDept) {
         super(threadDept);
@@ -48,7 +49,7 @@ public class DiorCrawler extends BaseCrawler {
     @Override
     public void run() {
         logger.info("============ DiorCrawler Crawler start=============");
-        List<String> urls = new ArrayList<>();
+
         urls.add("https://www.dior.com/home/zh_hk");
         urls.add("https://www.dior.cn/home/zh_cn");
         urls.add("https://www.dior.com/home/de_de");
@@ -65,7 +66,7 @@ public class DiorCrawler extends BaseCrawler {
     @Override
     public void process(Page page) {
         logger.info("process>>>>>" + page.getUrl().toString());
-        if (page.getUrl().regex("https://www.dior.cn/home/zh_cn").match()) {
+        if (urls.contains(page.getUrl().toString())) {
             Elements diorNavs = page.getHtml().getDocument().select("nav.main-nav li");
             ObjectUtil.checkNotNull(diorNavs, "dior Navs is null on line 71");
             for (Element element : diorNavs) {
