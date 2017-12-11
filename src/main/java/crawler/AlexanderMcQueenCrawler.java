@@ -219,11 +219,10 @@ public class AlexanderMcQueenCrawler extends BaseCrawler {
 
         }
         logger.info("============ Alexandermcqueen Urls ready=============");
-        Spider spider = Spider.create(new AlexanderMcQueenCrawler(threadDept))
+        spider = Spider.create(new AlexanderMcQueenCrawler(threadDept))
                 .addUrl((String[]) urlList.toArray(new String[urlList.size()]))
                 .thread(threadDept)
                 .addPipeline(new CrawlerPipeline());
-        setSpider(spider);
         spider.start();
     }
 }

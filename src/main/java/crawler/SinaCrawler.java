@@ -4,11 +4,19 @@ import base.BaseCrawler;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.junit.Ignore;
+import org.junit.Test;
+import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.chrome.ChromeDriver;
 import pipeline.SinaPipeline;
 import us.codecraft.webmagic.Page;
 import us.codecraft.webmagic.Site;
 import us.codecraft.webmagic.Spider;
 import us.codecraft.webmagic.processor.PageProcessor;
+import us.codecraft.webmagic.selector.Html;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -82,12 +90,29 @@ public class SinaCrawler extends BaseCrawler {
 
     public void run() {
         logger.info("============SinaCrawler start=============");
-        Spider spider = Spider.create(new SinaCrawler(threadDept))
+        spider = Spider.create(new SinaCrawler(threadDept))
                 .addUrl("http://www.biread.net/forum-37-1.html")
                 .thread(threadDept)
                 .addPipeline(new SinaPipeline());
-        setSpider(spider);
         spider.start();
+    }
+
+
+    public static void main(String[] args) throws InterruptedException {
+        System.getProperties().setProperty("webdriver.chrome.driver",
+                "D:\\java\\chromedriver.exe");
+        WebDriver webDriver = new ChromeDriver();
+        webDriver.get("http://row.jimmychoo.com/en_CN/women/shoes/");
+        for (int i = 0; i <= 20; i++) {
+            ((JavascriptExecutor) webDriver).executeScript("window.scrollTo(0, document.body.scrollHeight)");
+            Thread.sleep(3000);
+        }
+        Thread.sleep(3000);
+        WebElement webElement = webDriver.findElement(By.xpath("/html"));
+        System.out.println(webElement.getAttribute("outerHTML"));
+        Html html = new Html(webElement.getAttribute("outerHTML"));
+        html.getDocument();
+        webDriver.close();
     }
 
 }

@@ -61,11 +61,10 @@ public class ChannelCrawler extends BaseCrawler {
          */
         HttpClientDownloader httpClientDownloader = new HttpClientDownloader();
         httpClientDownloader.setProxyProvider(SimpleProxyProvider.from(new Proxy("127.0.0.1", 1080, "username", "password")));
-        Spider spider = Spider.create(new ChannelCrawler(threadDept))
+        spider = Spider.create(new ChannelCrawler(threadDept))
                 .addUrl("http://www.chanel.com/zh_CN/fashion.html#products")
 //                .addPipeline(new CrawlerPipeline())
                 .thread(threadDept);
-        setSpider(spider);
         spider.setDownloader(httpClientDownloader);
         spider.start();
     }

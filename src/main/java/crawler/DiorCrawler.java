@@ -35,7 +35,7 @@ public class DiorCrawler extends BaseCrawler {
      */
     private List<String> requestUrldeep = new ArrayList<>();
 
-    private List<String> urls = new ArrayList<>();
+    private static List<String> urls = new ArrayList<>();
 
     public DiorCrawler(int threadDept) {
         super(threadDept);
@@ -55,11 +55,10 @@ public class DiorCrawler extends BaseCrawler {
         urls.add("https://www.dior.com/home/de_de");
         urls.add("https://www.dior.com/home/en_gb");
 
-        Spider spider = Spider.create(new DiorCrawler(threadDept))
+        spider = Spider.create(new DiorCrawler(threadDept))
                 .addUrl("https://www.dior.cn/home/zh_cn")
                 .addPipeline(new CrawlerPipeline())
                 .thread(threadDept);
-        setSpider(spider);
         spider.start();
     }
 

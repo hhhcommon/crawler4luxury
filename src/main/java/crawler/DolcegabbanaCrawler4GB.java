@@ -55,12 +55,11 @@ public class DolcegabbanaCrawler4GB extends BaseCrawler {
         httpClientDownloader.setProxyProvider(SimpleProxyProvider.from(new Proxy("127.0.0.1", 1080, "", "")));
         urls.add("https://store.dolcegabbana.com/zh/");
 //        urls.add("https://us.dolcegabbana.com/fr/femme/nouveautes/robe-bustier-en-tulle-rose-F68A5TFLEAAF0372.html?cgid=newin-women#HP_BAN=BAN2_171205_NEWIN_W&start=1");
-        Spider spider = Spider.create(new DolcegabbanaCrawler4GB(threadDept))
+        spider = Spider.create(new DolcegabbanaCrawler4GB(threadDept))
                 .addUrl((String[]) urls.toArray(new String[urls.size()]))
                 .addPipeline(new CrawlerPipeline())
                 .thread(threadDept);
         spider.setDownloader(httpClientDownloader);
-        setSpider(spider);
         spider.start();
     }
 

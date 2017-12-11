@@ -2,8 +2,10 @@ package base;
 
 import us.codecraft.webmagic.Site;
 import us.codecraft.webmagic.Spider;
+import us.codecraft.webmagic.monitor.SpiderMonitor;
 import us.codecraft.webmagic.processor.PageProcessor;
 
+import javax.management.JMException;
 import java.util.logging.Logger;
 
 /**
@@ -29,13 +31,10 @@ public abstract class BaseCrawler implements Runnable, PageProcessor {
     /**
      * 基类爬虫对象
      */
-    private Spider spider;
+    protected Spider spider;
 
     protected Site site;
 
-    public void setSpider(Spider spider) {
-        this.spider = spider;
-    }
 
     public Spider getSpider() {
         return spider;
@@ -50,4 +49,5 @@ public abstract class BaseCrawler implements Runnable, PageProcessor {
         }
 
     }
+
 }

@@ -44,11 +44,10 @@ public class ChristianLouboutinCarwler extends BaseCrawler {
         urls.add("http://asia.christianlouboutin.com/hk_en/catalogsearch/result/?q=*:*");
         urls.add("http://eu.christianlouboutin.com/uk_en/catalogsearch/result/?q=*");
         urls.add("http://eu.christianlouboutin.com/de_en/catalogsearch/result/?q=*");
-        Spider spider = Spider.create(new ChristianLouboutinCarwler(threadDept))
+        spider = Spider.create(new ChristianLouboutinCarwler(threadDept))
                 .addUrl((String[]) urls.toArray(new String[urls.size()]))
                 .addPipeline(new CrawlerPipeline())
                 .thread(threadDept);
-        setSpider(spider);
         spider.start();
     }
 

@@ -79,11 +79,10 @@ public class BurberryCrawler extends BaseCrawler {
         urls.add("https://cn.burberry.com/service/shelf/men/sale/all-sale/shoes/?_=1512464406679");
         urls.add("https://cn.burberry.com/service/shelf/men/sale/all-sale/swimwear/?_=1512464008465");
 
-        Spider spider = Spider.create(new BurberryCrawler(threadDept))
+        spider = Spider.create(new BurberryCrawler(threadDept))
                 .addUrl((String[]) urls.toArray(new String[urls.size()]))
                 .addPipeline(new CrawlerPipeline())
                 .thread(threadDept);
-        setSpider(spider);
         spider.start();
     }
 
