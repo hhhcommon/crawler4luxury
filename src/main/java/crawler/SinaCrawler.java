@@ -98,21 +98,4 @@ public class SinaCrawler extends BaseCrawler {
     }
 
 
-    public static void main(String[] args) throws InterruptedException {
-        System.getProperties().setProperty("webdriver.chrome.driver",
-                "D:\\java\\chromedriver.exe");
-        WebDriver webDriver = new ChromeDriver();
-        webDriver.get("http://row.jimmychoo.com/en_CN/women/shoes/");
-        for (int i = 0; i <= 20; i++) {
-            ((JavascriptExecutor) webDriver).executeScript("window.scrollTo(0, document.body.scrollHeight)");
-            Thread.sleep(3000);
-        }
-        Thread.sleep(3000);
-        WebElement webElement = webDriver.findElement(By.xpath("/html"));
-        System.out.println(webElement.getAttribute("outerHTML"));
-        Html html = new Html(webElement.getAttribute("outerHTML"));
-        html.getDocument();
-        webDriver.close();
-    }
-
 }

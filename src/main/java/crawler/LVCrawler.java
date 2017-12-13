@@ -26,11 +26,10 @@ public class LVCrawler extends BaseCrawler {
 
     public LVCrawler(int threadDept) {
         super(threadDept);
-        System.getProperties().setProperty("webdriver.chrome.driver", "D:\\java\\chromedriver.exe");
     }
 
     public static void main(String[] args) {
-        new LVCrawler(1).run();
+        new LVCrawler(5).run();
     }
 
     @Override
@@ -38,6 +37,8 @@ public class LVCrawler extends BaseCrawler {
         logger.info(">>>>LVCrawler start<<<<");
         urls.add("http://www.louisvuitton.cn/zhs-cn/homepage");
         urls.add("http://hk.louisvuitton.com/eng-hk/homepage");
+        urls.add("http://fr.louisvuitton.com/fra-fr/homepage");
+        urls.add("http://uk.louisvuitton.com/eng-gb/homepage");
         spider = Spider.create(new LVCrawler(threadDept))
                 .addUrl((String[]) urls.toArray(new String[urls.size()]))
                 .addPipeline(new CrawlerPipeline())
@@ -54,6 +55,7 @@ public class LVCrawler extends BaseCrawler {
     public void process(Page page) {
         Document document = page.getHtml().getDocument();
         if (urls.contains(page.getUrl().toString())) {
+            logger.info("LVCrawler page is starting>>>" + page.getUrl().toString());
             //获取navs
             Elements elements = document.select("li[class=mm-block]");
             for (Element element : elements) {
@@ -66,7 +68,13 @@ public class LVCrawler extends BaseCrawler {
         }
         // navsList
         if (navList.contains(page.getUrl().toString())) {
-            Document document1 = getNextPager(page);
+            logger.info("nav page is starting>>>" + page.getUrl().toString());
+            Document document1 = null;
+            try {
+                document1 = getNextPager(page);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
             Elements elements = document1.getElementsByClass("product-item tagClick tagClick");
             for (Element element : elements) {
                 String link = element.attr("href");
@@ -78,7 +86,7 @@ public class LVCrawler extends BaseCrawler {
         }
 
         if (detailList.contains(page.getUrl().toString())) {
-
+            logger.info("detail page is starting>>>" + page.getUrl().toString());
             String pname = document.getElementsByClass("productName title").text();
             String ref = document.select("div[class=sku reading-and-link-text]").text();
             String prize = document.select("td[class=priceValue price-sheet]").text();
