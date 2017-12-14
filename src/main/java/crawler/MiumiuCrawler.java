@@ -35,8 +35,8 @@ public class MiumiuCrawler extends BaseCrawler {
     public void run() {
         logger.info(">>>>MiumiuCrawler start<<<<");
         urls.add("https://store.miumiu.com/zh-CN/miumiuww");
-//        urls.add("http://hk.louisvuitton.com/eng-hk/homepage");
-//        urls.add("http://fr.louisvuitton.com/fra-fr/homepage");
+        urls.add("https://store.miumiu.com/en/miumiude");
+        urls.add("https://store.miumiu.com/en/miumiugb");
 //        urls.add("http://uk.louisvuitton.com/eng-gb/homepage");
         spider = Spider.create(new MiumiuCrawler(threadDept))
                 .addUrl((String[]) urls.toArray(new String[urls.size()]))
@@ -101,8 +101,6 @@ public class MiumiuCrawler extends BaseCrawler {
                 }
 
             }
-
-
             Product p = new Product();
             p.setBrand("miumiu");
             p.setClassification(classification);
@@ -114,19 +112,18 @@ public class MiumiuCrawler extends BaseCrawler {
             p.setColor(Joiner.on("|").join(color));
             p.setUrl(page.getUrl().toString());
 
-            if (page.getUrl().toString().contains("/zh_cn/CN")) {
+            if (page.getUrl().toString().contains("zh-CN/miumiuww")) {
                 p.setPrice(priceInfo);
                 p.setLanguage("zh_CN");
             }
-            if (page.getUrl().toString().contains("en/DE")) {
+            if (page.getUrl().toString().contains("en/miumiude")) {
                 p.setEurPrice(priceInfo);
                 p.setLanguage("en/DE");
             }
-            if (page.getUrl().toString().contains("en/GB")) {
+            if (page.getUrl().toString().contains("en/miumiugb")) {
                 p.setEnPrice(priceInfo);
                 p.setLanguage("en/GB");
             }
-
             p.setIntroduction(Introduction);
             p.setRef(num);
             page.putField("product", p);

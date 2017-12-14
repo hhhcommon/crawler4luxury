@@ -17,8 +17,7 @@ public class RunMain {
     public static void main(String[] args) {
         DbUtil.init();
         Component component = CrawlerComponent.create("luxury job");
-        component.AddJob(new LVCrawler(1))
-                .setInterval(60 * 60 * 24)
+        component.AddJob(new ValentinoCrawler(1))
                 .run();
     }
 
