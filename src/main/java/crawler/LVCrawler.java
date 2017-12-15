@@ -86,6 +86,7 @@ public class LVCrawler extends BaseCrawler {
         }
 
         if (detailList.contains(page.getUrl().toString())) {
+            destroy();
             logger.info("detail page is starting>>>" + page.getUrl().toString());
             String pname = document.getElementsByClass("productName title").text();
             String ref = document.select("div[class=sku reading-and-link-text]").text();

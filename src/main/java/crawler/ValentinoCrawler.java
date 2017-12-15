@@ -84,6 +84,7 @@ public class ValentinoCrawler extends BaseCrawler {
         }
 
         if (detailList.contains(page.getUrl().toString())) {
+            destroy();
             logger.info("detail>>>" + page.getUrl().toString());
             String pname = null;
             String dePri = null;

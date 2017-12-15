@@ -27,7 +27,7 @@ public class PradaCrawler extends BaseCrawler {
     @Override
     public Site getSite() {
         site = Site.me()
-                .setDomain("www.miumiu.com")
+                .setDomain("www.prada.com")
                 .setRetryTimes(3)
                 .setTimeOut(5000)
                 .setUserAgent("Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.9 Safari/537.36");

@@ -17,7 +17,7 @@ public class test {
     public static void main(String[] args) {
         Component component = CrawlerComponent.create("测试job");
         component.AddJob(new SinaCrawler())
-                .AddJob(new AlexanderMcQueenCrawler())
+                .AddJob(new AlexanderMcQueenCrawler(1))
                 .setInterval(60 * 60 * 24)
                 .run();
 

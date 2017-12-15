@@ -14,9 +14,11 @@ import us.codecraft.webmagic.Page;
 import us.codecraft.webmagic.Site;
 import us.codecraft.webmagic.Spider;
 import us.codecraft.webmagic.downloader.HttpClientDownloader;
+import us.codecraft.webmagic.monitor.SpiderMonitor;
 import us.codecraft.webmagic.proxy.Proxy;
 import us.codecraft.webmagic.proxy.SimpleProxyProvider;
 
+import javax.management.JMException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,16 +28,7 @@ import java.util.List;
  * @Desc: DolcegabbanaCrawler4Hk
  */
 public class DolcegabbanaCrawler4Fr extends BaseCrawler {
-    /**
-     * 存储 nav的链接
-     */
-    private List<String> requestUrlNavs = new ArrayList<>();
 
-    /**
-     * 存储 详情页的链接
-     */
-    private List<String> requestUrlDetail = new ArrayList<>();
-    private static List<String> urls = new ArrayList<>();
 
     public DolcegabbanaCrawler4Fr(int threadDept) {
         super(threadDept);
@@ -60,6 +53,11 @@ public class DolcegabbanaCrawler4Fr extends BaseCrawler {
                 .addPipeline(new CrawlerPipeline())
                 .thread(threadDept);
         spider.setDownloader(httpClientDownloader);
+        try {
+            SpiderMonitor.instance().register(spider);
+        } catch (JMException e) {
+            e.printStackTrace();
+        }
         spider.start();
     }
 
@@ -73,26 +71,26 @@ public class DolcegabbanaCrawler4Fr extends BaseCrawler {
             for (Element element : elementNavs) {
                 String link = element.getElementsByTag("a").attr("href");
                 if (!Strings.isBlank(link)) {
-                    requestUrlNavs.add(link);
+                    navList.add(link);
                     page.addTargetRequest(link);
                 }
             }
         }
         //获取详情页链接
-        if (requestUrlNavs.contains(page.getUrl().toString())) {
+        if (navList.contains(page.getUrl().toString())) {
             Elements elementDetail = page.getHtml().getDocument().getElementsByClass("js-producttile_link b-product_image-wrapper");
             ObjectUtil.checkNotNull(elementDetail, "elementDetail is null");
             for (Element element : elementDetail) {
                 String link = element.getElementsByTag("a").attr("href");
                 if (!Strings.isBlank(link)) {
-                    requestUrlDetail.add(link);
+                    detailList.add(link);
                     page.addTargetRequest(link);
                     logger.info("detail url is added>>>>" + link);
                 }
             }
         }
         //解析详情页
-        if (requestUrlDetail.contains(page.getUrl().toString())) {
+        if (detailList.contains(page.getUrl().toString())) {
             logger.info("deal detail page is start");
             Document document = page.getHtml().getDocument();
             String size = "";

@@ -88,6 +88,7 @@ public class JimmyChooCrawler extends BaseCrawler {
         }
         //解析详情页面
         if (detailList.contains(page.getUrl().toString())) {
+            destroy();
             String pname = document.select("h1.product-name").text();
             String prize = document.getElementsByClass("text-uppercase").attr("content");
             String desc = document.getElementById("tab2").text();

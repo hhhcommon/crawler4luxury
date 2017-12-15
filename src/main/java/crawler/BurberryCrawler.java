@@ -4,6 +4,7 @@ package crawler;
 import base.BaseCrawler;
 import com.alibaba.fastjson.JSON;
 import com.google.common.base.Joiner;
+import common.DbUtil;
 import common.HttpRequestUtil;
 import common.RegexUtil;
 import core.model.Product;
@@ -15,7 +16,9 @@ import pipeline.CrawlerPipeline;
 import us.codecraft.webmagic.Page;
 import us.codecraft.webmagic.Site;
 import us.codecraft.webmagic.Spider;
+import us.codecraft.webmagic.monitor.SpiderMonitor;
 
+import javax.management.JMException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
@@ -24,9 +27,6 @@ import java.util.logging.Logger;
  * Created by yang on 2017/6/21.
  */
 public class BurberryCrawler extends BaseCrawler {
-
-    private final static Logger logger = Logger.getLogger(String.valueOf(BurberryCrawler.class));
-
     private static String senced = "https://cn.burberry.com/service/\\w+/\\w+/\\w+/.*?.=\\d+";
 
     private static String reg = "https://cn.burberry.com/.*p\\d+";
@@ -37,6 +37,7 @@ public class BurberryCrawler extends BaseCrawler {
     }
 
     public static void main(String[] args) {
+        DbUtil.init();
         new BurberryCrawler(1).run();
     }
 
@@ -83,6 +84,11 @@ public class BurberryCrawler extends BaseCrawler {
                 .addUrl((String[]) urls.toArray(new String[urls.size()]))
                 .addPipeline(new CrawlerPipeline())
                 .thread(threadDept);
+        try {
+            SpiderMonitor.instance().register(spider);
+        } catch (JMException e) {
+            e.printStackTrace();
+        }
         spider.start();
     }
 

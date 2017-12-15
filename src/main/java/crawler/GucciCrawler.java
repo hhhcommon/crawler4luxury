@@ -27,19 +27,6 @@ import java.util.List;
  * @Desc: GucciCrawler
  */
 public class GucciCrawler extends BaseCrawler {
-    /**
-     * navs
-     */
-    private static List<String> navList = new ArrayList<>();
-
-    /**
-     * detailList
-     */
-    private static List<String> detailList = new ArrayList<>();
-    /**
-     * urls
-     */
-    private static List<String> urls = new ArrayList<>();
 
     public GucciCrawler(int threadDept) {
         super(threadDept);

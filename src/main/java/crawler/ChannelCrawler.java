@@ -3,12 +3,14 @@ package crawler;
 import base.BaseCrawler;
 import com.alibaba.fastjson.JSON;
 import com.google.common.base.Joiner;
+import common.DbUtil;
 import common.HttpRequestUtil;
 import common.JsonParseUtil;
 import common.RegexUtil;
 import core.model.Product;
 import io.netty.util.internal.ObjectUtil;
 import model.ChannelJson;
+import org.apache.logging.log4j.util.Strings;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
@@ -17,11 +19,14 @@ import us.codecraft.webmagic.Page;
 import us.codecraft.webmagic.Site;
 import us.codecraft.webmagic.Spider;
 import us.codecraft.webmagic.downloader.HttpClientDownloader;
+import us.codecraft.webmagic.monitor.SpiderMonitor;
 import us.codecraft.webmagic.proxy.Proxy;
 import us.codecraft.webmagic.proxy.SimpleProxyProvider;
 
+import javax.management.JMException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * @Author: yang
@@ -50,6 +55,7 @@ public class ChannelCrawler extends BaseCrawler {
     }
 
     public static void main(String[] args) {
+        DbUtil.init();
         new ChannelCrawler(1).run();
     }
 
@@ -63,9 +69,14 @@ public class ChannelCrawler extends BaseCrawler {
         httpClientDownloader.setProxyProvider(SimpleProxyProvider.from(new Proxy("127.0.0.1", 1080, "username", "password")));
         spider = Spider.create(new ChannelCrawler(threadDept))
                 .addUrl("http://www.chanel.com/zh_CN/fashion.html#products")
-//                .addPipeline(new CrawlerPipeline())
+                .addPipeline(new CrawlerPipeline())
                 .thread(threadDept);
         spider.setDownloader(httpClientDownloader);
+        try {
+            SpiderMonitor.instance().register(spider);
+        } catch (JMException e) {
+            e.printStackTrace();
+        }
         spider.start();
     }
 
@@ -131,75 +142,86 @@ public class ChannelCrawler extends BaseCrawler {
             List<String> img = new ArrayList<String>();
             Elements elements = document.select("img[class=lazyloaded]");
             String language = "zh_CN";
+            int i = 0;
             for (Element element : elements) {
+                i++;
+                if (elements.size() / 2 < i) break;
                 img.add("http://www.chanel.com" + element.attr("data-src"));
             }
             try {
                 String json = RegexUtil.getDataByRegex(".\"detailsGridJsonUrl\": \"(.*?)\".", page.getHtml().toString());
-                String jsonUrl = "http://www.chanel.com" + json;
-                String html = HttpRequestUtil.sendGet(jsonUrl);
-                String jsonData = JsonParseUtil.getString(html, page.getUrl().toString().replaceAll("http://www.chanel.com", ""));
-                ChannelJson channelJsons = JSON.parseObject(jsonData, ChannelJson.class);
-                Product product = new Product();
-                List<ChannelJson.DataBeanX.DetailsBean.InformationBean> list = channelJsons.getData().getDetails().getInformation();
-                for (ChannelJson.DataBeanX.DetailsBean.InformationBean listData : list) {
-                    for (ChannelJson.DataBeanX.DetailsBean.InformationBean.DatasBean l : listData.getDatas()) {
-                        product.setName(l.getTitle());
-                        product.setColor(l.getColor());
-                        product.setMaterial(l.getMaterial());
-                        product.setRef(l.getData().get(0).getRef());
-                        product.setLanguage(language);
-                        //请求价格
-                        product.setPrice(getRefPrice("zh_CN", l));
-                        product.setHkPrice(getRefPrice("en_HK", l));
-                        product.setEnPrice(getRefPrice("en_GB", l));
-                        product.setEurPrice(getRefPrice("fr_BE", l));
-                        //同一个系列的图片放到相同的图片
-                        product.setImg(Joiner.on("|").join(img));
-                        product.setClassification(listData.getTitle());
-                        product.setBrand("chanel");
-                        page.putField("product", product);
-                        return;
+                if (!Objects.isNull(json)) {
+                    String jsonUrl = "http://www.chanel.com" + json;
+                    String html = HttpRequestUtil.sendGet(jsonUrl);
+                    String jsonData = JsonParseUtil.getString(html, page.getUrl().toString().replaceAll("http://www.chanel.com", ""));
+                    ChannelJson channelJsons = JSON.parseObject(jsonData, ChannelJson.class);
+                    Product product = new Product();
+                    List<ChannelJson.DataBeanX.DetailsBean.InformationBean> list = channelJsons.getData().getDetails().getInformation();
+                    for (ChannelJson.DataBeanX.DetailsBean.InformationBean listData : list) {
+                        for (ChannelJson.DataBeanX.DetailsBean.InformationBean.DatasBean l : listData.getDatas()) {
+                            product.setName(l.getTitle());
+                            product.setColor(l.getColor());
+                            product.setMaterial(l.getMaterial());
+                            product.setRef(l.getData().get(0).getRef());
+                            product.setLanguage(language);
+                            product.setUrl(page.getUrl().toString());
+                            //请求价格
+                            product.setPrice(getRefPrice("zh_CN", l));
+                            product.setHkPrice(getRefPrice("en_HK", l));
+                            product.setEnPrice(getRefPrice("en_GB", l));
+                            product.setEurPrice(getRefPrice("fr_BE", l));
+                            //同一个系列的图片放到相同的图片
+                            product.setImg(Joiner.on("|").join(img));
+                            product.setClassification(listData.getTitle());
+                            product.setBrand("chanel");
+                            page.putField("product", product);
+                            return;
+                        }
                     }
                 }
 
-
-                ObjectUtil.checkNotNull(channelJsons, "JSON.parseArray is null");
             } catch (Exception e) {
                 logger.info("该链接不支持json方式！");
             }
-            //获取num 商品
-            int num = Integer.parseInt(document.getElementsByClass("page-num no-select").text());
 
-            String ref = document.getElementsByClass("ref info").get(num - 1).text();
+            document = getNextPager(page);
+            String ref = document.select("div[class=ref info] p").first().text();
+            String size = null;
+            try {
+                size = RegexUtil.getDataByRegex("<p class=\"size info\">(.*?)</p>", page.getHtml().toString());
+            } catch (Exception e) {
 
-            String size = RegexUtil.getDataByRegex("<p class=\"size info\">(.*?)</p>", page.getHtml().toString());
+            }
             String classification = "";
-
             List<String> arr = RegexUtil.matchGroup(reg, page.getUrl().toString());
             if (arr.size() == 2) {
                 language = arr.get(0);
                 classification = arr.get(1);
             }
             List<String> tagarr = RegexUtil.matchGroup("<span itemprop=\"title\">(.*?)</span>", page.getHtml().toString());
-            String tags = tagarr.get(0);
+            String tags = tagarr.get(2);
+            String num = document.select("h2[class=page-num no-select]").text();
             String price = "";
-
-
+            if (!Strings.isBlank(num)) {
+                int number = Integer.parseInt(num);
+                price = document.select("div[class=information-prices] p[class=price info]").eq(number - 1).text();
+            }
+            String desc = document.select("p[class=description info matCol ]").first().getElementsByTag("span").first().text();
+            String color = document.select("p[class=description info matCol ]").first().getElementsByTag("span").eq(1).text();
             Product p = new Product();
             p.setBrand("chanel");
             p.setClassification(classification);
-//            p.setColor(color);
+            p.setColor(color);
             p.setImg(Joiner.on("|").join(img));
             p.setName(name);
             p.setUrl(page.getUrl().toString());
             p.setLanguage(language);
-//            p.setMaterial(material);
-//            p.setRef(ref);
+            p.setIntroduction(desc);
+            p.setRef(ref);
             p.setSize(size);
             p.setPrice(price);
             p.setTags(tags);
-//            page.putField("product", p);
+            page.putField("product", p);
         }
     }
 
@@ -221,10 +243,9 @@ public class ChannelCrawler extends BaseCrawler {
 
         site = Site.me()
                 .setDomain("www.chanel.com")
+                .setRetryTimes(3)
                 .setUserAgent("Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.9 Safari/537.36")
                 .setSleepTime(3000);
-
-
         return site;
     }
 }

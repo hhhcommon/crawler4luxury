@@ -14,7 +14,9 @@ import pipeline.CrawlerPipeline;
 import us.codecraft.webmagic.Page;
 import us.codecraft.webmagic.Site;
 import us.codecraft.webmagic.Spider;
+import us.codecraft.webmagic.monitor.SpiderMonitor;
 
+import javax.management.JMException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
@@ -25,17 +27,6 @@ import java.util.logging.Logger;
  * @Desc: DiorCrawler
  */
 public class DiorCrawler extends BaseCrawler {
-    final static Logger logger = Logger.getLogger(String.valueOf(DiorCrawler.class));
-    /**
-     * 存储 nav的链接
-     */
-    private List<String> requestUrlNavs = new ArrayList<>();
-    /**
-     * 存储 商品链接
-     */
-    private List<String> requestUrldeep = new ArrayList<>();
-
-    private static List<String> urls = new ArrayList<>();
 
     public DiorCrawler(int threadDept) {
         super(threadDept);
@@ -59,6 +50,11 @@ public class DiorCrawler extends BaseCrawler {
                 .addUrl("https://www.dior.cn/home/zh_cn")
                 .addPipeline(new CrawlerPipeline())
                 .thread(threadDept);
+        try {
+            SpiderMonitor.instance().register(spider);
+        } catch (JMException e) {
+            e.printStackTrace();
+        }
         spider.start();
     }
 
@@ -73,22 +69,22 @@ public class DiorCrawler extends BaseCrawler {
                 if (!Strings.isNullOrEmpty(url)) {
                     logger.info("navs url added>>>>>" + url);
                     page.addTargetRequest(url);
-                    requestUrlNavs.add(url);
+                    navList.add(url);
                 }
             }
         }
-        if (requestUrlNavs.contains(page.getUrl().toString())) {
+        if (navList.contains(page.getUrl().toString())) {
             Elements diorNavsDeep = page.getHtml().getDocument().select("ul.js-subnav-items li");
             for (Element element : diorNavsDeep) {
                 String url = element.getElementsByTag("a").attr("href");
                 if (!Strings.isNullOrEmpty(url)) {
                     logger.info("diorNavsDeep url added>>>>>" + url);
                     page.addTargetRequest(url);
-                    requestUrldeep.add(url);
+                    detailList.add(url);
                 }
             }
         }
-        if (requestUrldeep.contains(page.getUrl().toString())) {
+        if (detailList.contains(page.getUrl().toString())) {
             String reg = "j.*adior";
             String html = page.getHtml().toString().replaceAll(reg, "jadior");
             Document document = Jsoup.parse(html);

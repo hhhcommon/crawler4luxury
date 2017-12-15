@@ -3,11 +3,13 @@ package crawler;
 import base.BaseCrawler;
 import com.alibaba.fastjson.JSON;
 import com.google.common.base.Joiner;
+import com.google.common.base.Strings;
 import common.HttpRequestUtil;
 import common.RegexUtil;
 import model.Alexandermcqueen;
 import model.ColorAlexander;
 import core.model.Product;
+import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
@@ -16,11 +18,14 @@ import us.codecraft.webmagic.Page;
 import us.codecraft.webmagic.Site;
 import us.codecraft.webmagic.Spider;
 
+import us.codecraft.webmagic.monitor.SpiderMonitor;
 import us.codecraft.webmagic.processor.PageProcessor;
 
 
+import javax.management.JMException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.logging.Logger;
 
 /**
@@ -29,7 +34,6 @@ import java.util.logging.Logger;
  * @desc: AlexanderMcQueenCrawler
  */
 public class AlexanderMcQueenCrawler extends BaseCrawler {
-    private final static Logger logger = Logger.getLogger(String.valueOf(AlexanderMcQueenCrawler.class));
 
     private static String reg = "http://www.alexandermcqueen.cn/.*?/alexandermcqueen/.*.html#dept=\\w+";
 
@@ -37,36 +41,73 @@ public class AlexanderMcQueenCrawler extends BaseCrawler {
 
     public AlexanderMcQueenCrawler(int threadDept) {
         super(threadDept);
-        this.threadDept = threadDept;
     }
 
-    public AlexanderMcQueenCrawler() {
-        super(1);
+    public static void main(String[] args) {
+        new AlexanderMcQueenCrawler(1).run();
+    }
+
+    @Override
+    public void run() {
+        logger.info("============ Alexandermcqueen Crawler start=============");
+        //添加中国的链接
+        urls.add("http://www.alexandermcqueen.cn/cn");
+        urls.add("http://www.alexandermcqueen.com/hk");
+        urls.add("http://www.alexandermcqueen.com/de");
+        urls.add("http://www.alexandermcqueen.com/gb");
+        spider = Spider.create(new AlexanderMcQueenCrawler(threadDept))
+                .addUrl((String[]) urls.toArray(new String[urls.size()]))
+                .thread(threadDept)
+                .addPipeline(new CrawlerPipeline());
+        try {
+            SpiderMonitor.instance().register(spider);
+        } catch (JMException e) {
+            e.printStackTrace();
+        }
+        spider.start();
     }
 
     public void process(Page page) {
-        logger.info("process>>>>>>>>>>>" + page.getUrl());
-        List<String> requestList = new ArrayList<>();
-        //每页获取 每个详情页
-        Elements elements = page.getHtml().getDocument().select("#llmnwmn > div > section > article");
-        if (elements.size() > 0) {
+
+        logger.info("process start>>>>" + page.getUrl().toString());
+        Document document = page.getHtml().getDocument();
+        if (urls.contains(page.getUrl().toString())) {
+            Elements elements = document.select("ul[class=level-1] li");
             for (Element element : elements) {
-                String url = element.select("a").attr("href");
-                logger.info("加入到采集队列>>>>>>>" + url);
-                requestList.add(url);
+                String link = element.getElementsByTag("a").attr("href");
+                if (!Strings.isNullOrEmpty(link)) {
+                    navList.add(link);
+                    page.addTargetRequest(link);
+                }
             }
-            //将详情页 添加到 待爬取的request里
-            page.addTargetRequests(requestList);
         }
 
+        if (navList.contains(page.getUrl().toString())) {
+            logger.info("process>>>>>>>>>>>" + page.getUrl());
+            document = getNextPager(page);
+            //每页获取 每个详情页
+            Elements elements = document.select("article");
+            if (elements.size() > 0) {
+                for (Element element : elements) {
+                    String url = element.select("a").attr("href");
+                    logger.info("加入到采集队列>>>>>>>" + url);
+                    detailList.add(url);
+                    page.addTargetRequest(url);
+                }
+            }
+        }
         /**
          * 这里是分析详情页的地方
          */
-        Product product = analyticalData(page);
-        //加入数据
-        if (product != null && !"".equals(product.getName())) {
-            page.putField("product", product);
+        if (detailList.contains(page.getUrl().toString())) {
+            destroy();
+            Product product = analyticalData(page);
+            //加入数据
+            if (!Objects.isNull(product) && !Strings.isNullOrEmpty(product.getName())) {
+                page.putField("product", product);
+            }
         }
+
     }
 
     /**
@@ -86,9 +127,8 @@ public class AlexanderMcQueenCrawler extends BaseCrawler {
             String prizeUrl = "";
             String colorUrl = "";
             num = RegexUtil.getDataByRegex("\"Code10\":\"(.*?)\"", page.getHtml().toString());
-            colorUrl =
-                    "http://www.alexandermcqueen.cn/yTos/api/Plugins/ItemPluginApi/GetCombinationsAsync/?siteCode=ALEXANDERMCQUEEN_CN&code10="
-                            + num;
+            colorUrl = "http://www.alexandermcqueen.cn/yTos/api/Plugins/ItemPluginApi/GetCombinationsAsync/?siteCode=ALEXANDERMCQUEEN_CN&code10="
+                    + num;
             // 中国地址
             if (page.getUrl().toString().contains("http://www.alexandermcqueen.cn/cn")) {
                 prizeUrl = "http://www.alexandermcqueen.cn/yTos/api/Plugins/SeoPluginApi/GetDataLayer?itemCode10=" + num
@@ -191,38 +231,5 @@ public class AlexanderMcQueenCrawler extends BaseCrawler {
         return site;
     }
 
-    public void run() {
-        logger.info("============ Alexandermcqueen Crawler start=============");
-        List<String> urlList = new ArrayList<>();
-        for (int i = 1; i <= 20; i++) {
-            String HkUrl =
-                    "http://www.alexandermcqueen.com/Search/RenderProducts?ytosQuery=true&department=llmnwmn&gender=D%2CU%2CE&agerange=adult&page="
-                            + i
-                            + "&productsPerPage=50&suggestion=false&textSearch=*&totalPages=11&totalItems=532&partialLoadedItems=50&itemsToLoadOnNextPage=50&siteCode=ALEXANDERMCQUEEN_HK";
-            String deUrl =
-                    "http://www.alexandermcqueen.com/Search/RenderProducts?ytosQuery=true&department=llmnwmn&gender=D%2CU%2CE&agerange=adult&page="
-                            + i
-                            + "&productsPerPage=50&suggestion=false&textSearch=*&totalPages=16&totalItems=773&partialLoadedItems=50&itemsToLoadOnNextPage=50&siteCode=ALEXANDERMCQUEEN_DE";
-            String gbUrl =
-                    "http://www.alexandermcqueen.com/Search/RenderProducts?ytosQuery=true&department=llmnwmn&gender=D%2CU%2CE&agerange=adult&page="
-                            + i
-                            + "&productsPerPage=50&suggestion=false&textSearch=*&totalPages=16&totalItems=773&partialLoadedItems=50&itemsToLoadOnNextPage=50&siteCode=ALEXANDERMCQUEEN_GB";
-            String cnurl =
-                    "http://www.alexandermcqueen.cn/Search/RenderProducts?ytosQuery=true&department=llmnwmn&gender=D%2CU%2CE&agerange=adult&page="
-                            + i
-                            + "&productsPerPage=50&suggestion=false&textSearch=*%3A*&totalPages=8&totalItems=391&partialLoadedItems=50&itemsToLoadOnNextPage=50&siteCode=ALEXANDERMCQUEEN_CN";
-            //将所有的url添加进去
-            urlList.add(cnurl);
-            urlList.add(HkUrl);
-            urlList.add(deUrl);
-            urlList.add(gbUrl);
 
-        }
-        logger.info("============ Alexandermcqueen Urls ready=============");
-        spider = Spider.create(new AlexanderMcQueenCrawler(threadDept))
-                .addUrl((String[]) urlList.toArray(new String[urlList.size()]))
-                .thread(threadDept)
-                .addPipeline(new CrawlerPipeline());
-        spider.start();
-    }
 }

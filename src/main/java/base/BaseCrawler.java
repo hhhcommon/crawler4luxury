@@ -1,6 +1,7 @@
 package base;
 
 import common.SeleniumUtils;
+import main.RunMain;
 import org.apache.logging.log4j.util.Strings;
 import org.jsoup.nodes.Document;
 import org.openqa.selenium.By;
@@ -35,23 +36,23 @@ public abstract class BaseCrawler implements Runnable, PageProcessor {
     /**
      * navs
      */
-    protected static List<String> navList = new ArrayList<>();
+    protected List<String> navList = new ArrayList<>();
     /**
      * detailList
      */
-    protected static List<String> detailList = new ArrayList<>();
+    protected List<String> detailList = new ArrayList<>();
 
 
     public BaseCrawler(int threadDept) {
         this.threadDept = threadDept;
-        System.getProperties().setProperty("webdriver.chrome.driver", "D:\\java\\chromedriver.exe");
+        System.getProperties().setProperty("webdriver.chrome.driver", BaseCrawler.class.getClassLoader().getResource("chromedriver.exe").getPath());
     }
 
     public BaseCrawler(Site site) {
         this.site = site;
     }
 
-    protected static Logger logger = Logger.getLogger(String.valueOf(BaseCrawler.class));
+    protected static final Logger logger = Logger.getLogger(String.valueOf(BaseCrawler.class));
     /**
      * 线程数
      */
@@ -63,7 +64,7 @@ public abstract class BaseCrawler implements Runnable, PageProcessor {
 
     protected Site site;
 
-    protected static WebDriver webDriver;
+    protected WebDriver webDriver;
 
     protected int runTime = 0;
 
@@ -87,18 +88,20 @@ public abstract class BaseCrawler implements Runnable, PageProcessor {
      * @param page
      * @return
      */
-    public Document getNextPager(Page page) {
+    public synchronized Document getNextPager(Page page) {
         if (runTime == 0) {
             webDriver = new ChromeDriver();
         }
         runTime++;
+        logger.info("Selenium runTime>>>>" + runTime);
         Html html;
         try {
             //设置超时时间
             webDriver.manage().timeouts().setScriptTimeout(3, TimeUnit.SECONDS);
             webDriver.get(page.getUrl().toString());
         } catch (Exception e) {
-            e.printStackTrace();
+            webDriver = new ChromeDriver();
+            webDriver.get(page.getUrl().toString());
         } finally {
             while (true) {
                 try {
@@ -132,18 +135,21 @@ public abstract class BaseCrawler implements Runnable, PageProcessor {
      * @param ClickText
      * @return
      */
-    public Document getNextPager(Page page, String ClickText) {
+    public synchronized Document getNextPager(Page page, String ClickText) {
         if (runTime == 0) {
             webDriver = new ChromeDriver();
         }
         runTime++;
+        logger.info("Selenium runTime>>>>" + runTime);
         Html html;
         try {
             //设置超时时间
             webDriver.manage().timeouts().setScriptTimeout(3, TimeUnit.SECONDS);
             webDriver.get(page.getUrl().toString());
         } catch (Exception e) {
-            e.printStackTrace();
+            webDriver = new ChromeDriver();
+            webDriver.manage().timeouts().setScriptTimeout(3, TimeUnit.SECONDS);
+            webDriver.get(page.getUrl().toString());
         } finally {
             while (true) {
                 try {
@@ -167,11 +173,17 @@ public abstract class BaseCrawler implements Runnable, PageProcessor {
             WebElement webElement = webDriver.findElement(By.xpath("/html"));
             html = new Html(webElement.getAttribute("outerHTML"));
         }
-        //如果跑完之后 关闭
-        if (navList.size() == runTime) {
-            webDriver.close();
-        }
         return html.getDocument();
+    }
+
+    /**
+     * 销毁webderive
+     */
+    protected void destroy() {
+        if (webDriver != null) {
+            webDriver.close();
+            webDriver = null;
+        }
     }
 
 }

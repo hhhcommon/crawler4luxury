@@ -15,8 +15,10 @@ import pipeline.CrawlerPipeline;
 import us.codecraft.webmagic.Page;
 import us.codecraft.webmagic.Site;
 import us.codecraft.webmagic.Spider;
+import us.codecraft.webmagic.monitor.SpiderMonitor;
 import us.codecraft.webmagic.processor.PageProcessor;
 
+import javax.management.JMException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -48,6 +50,11 @@ public class ChristianLouboutinCarwler extends BaseCrawler {
                 .addUrl((String[]) urls.toArray(new String[urls.size()]))
                 .addPipeline(new CrawlerPipeline())
                 .thread(threadDept);
+        try {
+            SpiderMonitor.instance().register(spider);
+        } catch (JMException e) {
+            e.printStackTrace();
+        }
         spider.start();
     }
 

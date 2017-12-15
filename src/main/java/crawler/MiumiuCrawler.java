@@ -87,6 +87,7 @@ public class MiumiuCrawler extends BaseCrawler {
          * 处理 详情页
          */
         if (detailList.contains(page.getUrl().toString())) {
+            destroy();
             String pname = document.select("span[class=nameProduct]").text();
             String classification = document.select("li[class=lv1 selected]").text();
             String Introduction = document.select("div[class=descriptionTab descriptionContent]").text();

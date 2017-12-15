@@ -1,9 +1,13 @@
 package main;
 
+import base.BaseCrawler;
 import common.DbUtil;
 import compone.Component;
 import crawler.*;
 import factory.CrawlerComponent;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @Author: yang 【youtulu.cn】
@@ -16,8 +20,10 @@ public class RunMain {
 
     public static void main(String[] args) {
         DbUtil.init();
-        Component component = CrawlerComponent.create("luxury job");
-        component.AddJob(new ValentinoCrawler(1))
+        Component component = CrawlerComponent.create("================luxury job start===============");
+        List<BaseCrawler> crawlerList = new ArrayList<>();
+        crawlerList.add(new AlexanderMcQueenCrawler(1));
+        component.AddJob(crawlerList)
                 .run();
     }
 
