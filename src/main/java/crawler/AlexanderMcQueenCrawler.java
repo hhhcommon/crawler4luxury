@@ -31,7 +31,7 @@ import java.util.logging.Logger;
 /**
  * @Author: yang
  * @Date: 2017/12/1.16:57
- * @desc: AlexanderMcQueenCrawler
+ * @desc: AlexanderMcQueenCrawler  is ok'
  */
 public class AlexanderMcQueenCrawler extends BaseCrawler {
 

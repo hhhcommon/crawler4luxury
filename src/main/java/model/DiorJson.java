@@ -10,7 +10,7 @@ public class DiorJson {
 
     /**
      * event : productClick
-     * ecommerce : {"click":{"products":[{"id":"50272","name":"LADY DIOR袖珍手提包","price":"3500.0000","brand":"CDC","category":"woman/handbags handbags/lady dior","variant":"红色小母牛皮，缀以饰钉","dimension25":"","code":"M0598VLAF_M47R","position":"1"}]}}
+     * ecommerce : {"click":{"products":[{"id":"51971","name":"定位印花，白色纯棉","price":"550.0000","brand":"CDC","category":"men/ready-to-wear shirts","variant":"","dimension25":"","code":"433C529K0580_C089","position":"1"}]}}
      */
 
     private String event;
@@ -34,7 +34,7 @@ public class DiorJson {
 
     public static class EcommerceBean {
         /**
-         * click : {"products":[{"id":"50272","name":"LADY DIOR袖珍手提包","price":"3500.0000","brand":"CDC","category":"woman/handbags handbags/lady dior","variant":"红色小母牛皮，缀以饰钉","dimension25":"","code":"M0598VLAF_M47R","position":"1"}]}
+         * click : {"products":[{"id":"51971","name":"定位印花，白色纯棉","price":"550.0000","brand":"CDC","category":"men/ready-to-wear shirts","variant":"","dimension25":"","code":"433C529K0580_C089","position":"1"}]}
          */
 
         private ClickBean click;
@@ -60,14 +60,14 @@ public class DiorJson {
 
             public static class ProductsBean {
                 /**
-                 * id : 50272
-                 * name : LADY DIOR袖珍手提包
-                 * price : 3500.0000
+                 * id : 51971
+                 * name : 定位印花，白色纯棉
+                 * price : 550.0000
                  * brand : CDC
-                 * category : woman/handbags handbags/lady dior
-                 * variant : 红色小母牛皮，缀以饰钉
+                 * category : men/ready-to-wear shirts
+                 * variant :
                  * dimension25 :
-                 * code : M0598VLAF_M47R
+                 * code : 433C529K0580_C089
                  * position : 1
                  */
 

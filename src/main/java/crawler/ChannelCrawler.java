@@ -245,7 +245,7 @@ public class ChannelCrawler extends BaseCrawler {
                 .setDomain("www.chanel.com")
                 .setRetryTimes(3)
                 .setUserAgent("Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.9 Safari/537.36")
-                .setSleepTime(3000);
+                .setSleepTime(1000);
         return site;
     }
 }

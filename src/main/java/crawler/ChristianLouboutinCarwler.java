@@ -3,6 +3,7 @@ package crawler;
 import base.BaseCrawler;
 import com.alibaba.fastjson.JSON;
 import com.google.common.base.Joiner;
+import common.DbUtil;
 import common.JsonParseUtil;
 import common.RegexUtil;
 import core.model.Product;
@@ -36,6 +37,7 @@ public class ChristianLouboutinCarwler extends BaseCrawler {
     }
 
     public static void main(String[] args) {
+        DbUtil.init();
         new ChristianLouboutinCarwler(1).run();
     }
 

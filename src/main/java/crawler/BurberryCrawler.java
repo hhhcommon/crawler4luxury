@@ -21,10 +21,11 @@ import us.codecraft.webmagic.monitor.SpiderMonitor;
 import javax.management.JMException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Logger;
 
 /**
- * Created by yang on 2017/6/21.
+ * @Author cyy
+ * @Date 2017/12/15 18:35
+ * @Description BurberryCrawler is ok
  */
 public class BurberryCrawler extends BaseCrawler {
     private static String senced = "https://cn.burberry.com/service/\\w+/\\w+/\\w+/.*?.=\\d+";
@@ -218,7 +219,9 @@ public class BurberryCrawler extends BaseCrawler {
                 .addHeader("x-newrelic-id", "VwIOVFFUGwIJVldQBAQA")
                 .addHeader("referer", "https://cn.burberry.com/womens-new-arrivals-new-in/")
                 .addHeader("x-csrf-token", getCode())
-                .setSleepTime(3000);
+                .setRetryTimes(3)
+                .setTimeOut(5000)
+                .setSleepTime(1000);
         return site;
     }
 
