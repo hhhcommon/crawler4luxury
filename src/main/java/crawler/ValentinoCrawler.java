@@ -31,9 +31,9 @@ public class ValentinoCrawler extends BaseCrawler {
     public ValentinoCrawler(int threadDept) {
         super(threadDept);
         //初始化的时候初始化 webdriver
-        baseDriver = new WebDriverComponent();
+        driverComponent = new WebDriverComponent();
         //创建一个driver 超时时间设置为3s
-        webDriver = baseDriver.create(3);
+        webDriver = driverComponent.create(3);
     }
 
     @Override
@@ -74,7 +74,7 @@ public class ValentinoCrawler extends BaseCrawler {
         if (navList.contains(page.getUrl().toString())) {
             logger.info("nav>>>>" + page.getUrl().toString());
 
-            Document document1 = baseDriver.getNextPager(page, webDriver, "加载更多");
+            Document document1 = driverComponent.getNextPager(page, webDriver, "加载更多");
             Elements elements = document1.select("article[class=search-item   ]");
             for (Element element : elements) {
                 String detailLink = element.getElementsByTag("a").attr("href");
@@ -88,7 +88,7 @@ public class ValentinoCrawler extends BaseCrawler {
         }
 
         if (detailList.contains(page.getUrl().toString())) {
-            baseDriver.destoty();
+            driverComponent.destoty();
             logger.info("detail>>>" + page.getUrl().toString());
             String pname = null;
             String dePri = null;

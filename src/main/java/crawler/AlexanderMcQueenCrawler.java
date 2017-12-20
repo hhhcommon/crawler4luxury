@@ -41,9 +41,9 @@ public class AlexanderMcQueenCrawler extends BaseCrawler {
     public AlexanderMcQueenCrawler(int threadDept) {
         super(threadDept);
         //初始化的时候初始化 webdriver
-        baseDriver = new WebDriverComponent();
+        driverComponent = new WebDriverComponent();
         //创建一个driver 超时时间设置为3s
-        webDriver = baseDriver.create(3);
+        webDriver = driverComponent.create(3);
     }
 
     public static void main(String[] args) {
@@ -87,7 +87,7 @@ public class AlexanderMcQueenCrawler extends BaseCrawler {
 
         if (navList.contains(page.getUrl().toString())) {
             logger.info("process>>>>>>>>>>>" + page.getUrl());
-            document = baseDriver.getNextPager(page, webDriver);
+            document = driverComponent.getNextPager(page, webDriver);
             //每页获取 每个详情页
             Elements elements = document.select("article");
             if (elements.size() > 0) {
@@ -103,7 +103,7 @@ public class AlexanderMcQueenCrawler extends BaseCrawler {
          * 这里是分析详情页的地方
          */
         if (detailList.contains(page.getUrl().toString())) {
-            baseDriver.destoty();
+            driverComponent.destoty();
             Product product = analyticalData(page);
             //加入数据
             if (!Objects.isNull(product) && !Strings.isNullOrEmpty(product.getName())) {

@@ -8,7 +8,6 @@ import common.HttpRequestUtil;
 import common.JsonParseUtil;
 import common.RegexUtil;
 import core.model.Product;
-import factory.WebDriverComponent;
 import io.netty.util.internal.ObjectUtil;
 import model.ChannelJson;
 import org.apache.logging.log4j.util.Strings;
@@ -180,7 +179,7 @@ public class ChannelCrawler extends BaseCrawler {
             } catch (Exception e) {
                 logger.info("该链接不支持json方式！");
             }
-            document = baseDriver.getNextPager(page, webDriver);
+            document = driverComponent.getNextPager(page, webDriver);
             String ref = null;
             try {
                 ref = document.select("div[class=ref info] p").first().text();
@@ -249,20 +248,7 @@ public class ChannelCrawler extends BaseCrawler {
         return price;
     }
 
-    /**
-     * 初始化
-     */
-    public void init() {
-        //初始化的时候初始化 webdriver
-        if (baseDriver == null) {
 
-            baseDriver = new WebDriverComponent();
-        }
-        if (webDriver == null) {
-            //创建一个driver 超时时间设置为3s
-            webDriver = baseDriver.create(3);
-        }
-    }
 
     @Override
     public Site getSite() {

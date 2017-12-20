@@ -21,7 +21,7 @@ public class RunMain {
         DbUtil.init();
         Component component = CrawlerComponent.create("================luxury job start===============");
         List<BaseCrawler> crawlerList = new ArrayList<>();
-        crawlerList.add(new ChannelCrawler(3));
+        crawlerList.add(new YslCrawler(1));
         component.AddJob(crawlerList)
                 .run();
     }

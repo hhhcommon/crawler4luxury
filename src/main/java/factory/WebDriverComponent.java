@@ -1,6 +1,6 @@
 package factory;
 
-import base.BaseDriver;
+import compone.DriverComponent;
 import common.SeleniumUtils;
 import org.apache.logging.log4j.util.Strings;
 import org.jsoup.nodes.Document;
@@ -18,7 +18,7 @@ import java.util.concurrent.TimeUnit;
  * @Date: 2017/12/20.14:57
  * @Desc: 创建一个webDriver 对象
  */
-public class WebDriverComponent extends BaseDriver {
+public class WebDriverComponent extends DriverComponent {
 
     /**
      * 创建一个webderive

@@ -31,9 +31,9 @@ public class JimmyChooCrawler extends BaseCrawler {
     public JimmyChooCrawler(int threadDept) {
         super(threadDept);
         //初始化的时候初始化 webdriver
-        baseDriver = new WebDriverComponent();
+        driverComponent = new WebDriverComponent();
         //创建一个driver 超时时间设置为3s
-        webDriver = baseDriver.create(3);
+        webDriver = driverComponent.create(3);
     }
 
     @Override
@@ -74,7 +74,7 @@ public class JimmyChooCrawler extends BaseCrawler {
         }
         //获取详情页面
         if (navList.contains(page.getUrl().toString())) {
-            Document document1 = baseDriver.getNextPager(page, webDriver);
+            Document document1 = driverComponent.getNextPager(page, webDriver);
             Elements elements = document1.getElementsByClass("js-producttile_link");
             for (Element element : elements) {
                 String link = element.attr("href");
@@ -86,7 +86,7 @@ public class JimmyChooCrawler extends BaseCrawler {
         }
         //解析详情页面
         if (detailList.contains(page.getUrl().toString())) {
-            baseDriver.destoty();
+            driverComponent.destoty();
             String pname = document.select("h1.product-name").text();
             String prize = document.getElementsByClass("text-uppercase").attr("content");
             String desc = document.getElementById("tab2").text();

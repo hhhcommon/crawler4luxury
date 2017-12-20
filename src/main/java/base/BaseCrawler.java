@@ -1,25 +1,14 @@
 package base;
 
-import common.SeleniumUtils;
-import main.RunMain;
-import org.apache.logging.log4j.util.Strings;
-import org.jsoup.nodes.Document;
-import org.openqa.selenium.By;
-import org.openqa.selenium.JavascriptExecutor;
+import compone.DriverComponent;
+import factory.WebDriverComponent;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
-import org.openqa.selenium.chrome.ChromeDriver;
-import us.codecraft.webmagic.Page;
 import us.codecraft.webmagic.Site;
 import us.codecraft.webmagic.Spider;
-import us.codecraft.webmagic.monitor.SpiderMonitor;
 import us.codecraft.webmagic.processor.PageProcessor;
-import us.codecraft.webmagic.selector.Html;
 
-import javax.management.JMException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 /**
@@ -61,7 +50,7 @@ public abstract class BaseCrawler implements Runnable, PageProcessor {
 
     protected WebDriver webDriver;
 
-    protected BaseDriver baseDriver;
+    protected DriverComponent driverComponent;
 
     public Spider getSpider() {
         return spider;
@@ -75,6 +64,21 @@ public abstract class BaseCrawler implements Runnable, PageProcessor {
             spider.stop();
         }
 
+    }
+
+    /**
+     * 初始化
+     */
+    public void init() {
+        //初始化的时候初始化 webdriver
+        if (driverComponent == null) {
+
+            driverComponent = new WebDriverComponent();
+        }
+        if (webDriver == null) {
+            //创建一个driver 超时时间设置为3s
+            webDriver = driverComponent.create(3);
+        }
     }
 
 }

@@ -28,9 +28,9 @@ public class LVCrawler extends BaseCrawler {
     public LVCrawler(int threadDept) {
         super(threadDept);
         //初始化的时候初始化 webdriver
-        baseDriver = new WebDriverComponent();
+        driverComponent = new WebDriverComponent();
         //创建一个driver 超时时间设置为3s
-        webDriver = baseDriver.create(3);
+        webDriver = driverComponent.create(3);
     }
 
     public static void main(String[] args) {
@@ -76,7 +76,7 @@ public class LVCrawler extends BaseCrawler {
             logger.info("nav page is starting>>>" + page.getUrl().toString());
             Document document1 = null;
             try {
-                document1 = baseDriver.getNextPager(page, webDriver);
+                document1 = driverComponent.getNextPager(page, webDriver);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -91,7 +91,7 @@ public class LVCrawler extends BaseCrawler {
         }
 
         if (detailList.contains(page.getUrl().toString())) {
-            baseDriver.destoty();
+            driverComponent.destoty();
             logger.info("detail page is starting>>>" + page.getUrl().toString());
             String pname = document.getElementsByClass("productName title").text();
             String ref = document.select("div[class=sku reading-and-link-text]").text();
