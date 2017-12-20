@@ -94,7 +94,7 @@ public class WebDriverComponent extends DriverComponent {
                             SeleniumUtils.click(webDriver, ClickText);
                         }
                         //休眠6秒 防止 没加载出来就退出了
-                        Thread.sleep(3000);
+                        Thread.sleep(1000);
                         //判断是否翻到底了
                         if (SeleniumUtils.checkIsFlipPages(webDriver)) {
                             break;

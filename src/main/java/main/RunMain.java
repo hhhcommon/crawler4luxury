@@ -19,7 +19,7 @@ import java.util.List;
 public class RunMain {
     public static void main(String[] args) {
         DbUtil.init();
-        Component component = CrawlerComponent.create("================luxury job start===============");
+        Component component = CrawlerComponent.create("《《《《【luxury job start】》》》》");
         List<BaseCrawler> crawlerList = new ArrayList<>();
         crawlerList.add(new YslCrawler(1));
         component.AddJob(crawlerList)
