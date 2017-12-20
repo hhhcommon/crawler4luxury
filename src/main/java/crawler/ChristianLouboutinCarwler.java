@@ -130,7 +130,9 @@ public class ChristianLouboutinCarwler extends BaseCrawler {
     public Site getSite() {
         site = Site.me()
                 .setUserAgent("Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.9 Safari/537.36")
-                .setSleepTime(3000);
+                .setTimeOut(5000)
+                .setRetryTimes(3)
+                .setCharset("utf-8");
         return site;
     }
 }

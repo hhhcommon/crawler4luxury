@@ -107,8 +107,9 @@ public class FendiCrawler extends BaseCrawler {
                 .addHeader("Accept-Language", "zh-CN,zh;q=0.8")
                 .addHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36")
                 .addCookie("www.fendi.com", "VISITOR=returning; VISITOR=returning; f_location=39.9289|116.3883; mf_9e16e19a-9df3-46a7-bdf3-2ccc5054083f=-1; f_cookiedisclaimer-v1=true; f_nl_count=1; f_nl_hide_session=true; f_countrydetection=fr; NEW_VISITOR=new; __atuvc=35%7C24; __atuvs=59425a1f5e91c987001; count_bs=12; _uetsid=_uet786668a0; _ga=GA1.2.1862722591.1497503758; _gid=GA1.2.240050887.1497503758; rr_rcs=eF4lyjEOgDAIAMDFyX84kgClBWYXv4GtTRzc1PfbxPlumq_3PttOyQqQuGYUY0QVSECLrgP8B0YXpDKaA9D01E28HBZ9RGIEqdqgm3YIzsphFsjyAUE5Fpo; JSESSIONID=7E377DBE4E3D7DED048CEFD417583CB1.pro-hybris-fendi-as2; AWSELB=19C3EFC718D4E46B0AFA9FAEC94E244A6B371387357C9B7DBE85352C18157AEC2C677552694079786BA6A90A4C7229321DE2C2062CD0ADA67C3121C3CF712279A93B90ACBF66A8CE41B09F6B3474B1187ADB1AE94F")
-                .setSleepTime(3000)
+                .setSleepTime(500)
                 .setRetryTimes(3)
+                .setTimeOut(5000)
                 .setUserAgent("Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.9 Safari/537.36");
         return site;
     }

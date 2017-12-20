@@ -4,7 +4,7 @@ import base.BaseCrawler;
 import com.google.common.base.Joiner;
 import common.RegexUtil;
 import core.model.Product;
-import jdk.nashorn.internal.scripts.JO;
+import factory.WebDriverComponent;
 import org.apache.logging.log4j.util.Strings;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -29,6 +29,10 @@ public class MiumiuCrawler extends BaseCrawler {
 
     public MiumiuCrawler(int threadDept) {
         super(threadDept);
+        //初始化的时候初始化 webdriver
+        baseDriver = new WebDriverComponent();
+        //创建一个driver 超时时间设置为3s
+        webDriver = baseDriver.create(3);
     }
 
     @Override
@@ -72,7 +76,7 @@ public class MiumiuCrawler extends BaseCrawler {
          * navs
          */
         if (navList.contains(page.getUrl().toString())) {
-            Document document1 = getNextPager(page, "查看更多");
+            Document document1 = baseDriver.getNextPager(page, webDriver, "查看更多");
             Elements elements = document1.select("div[class=nextItem discount col-lg-3 col-md-3 col-sm-4 col-xs-6]");
             for (Element element : elements) {
                 String detailLink = element.getElementsByTag("a").attr("href");
@@ -87,7 +91,7 @@ public class MiumiuCrawler extends BaseCrawler {
          * 处理 详情页
          */
         if (detailList.contains(page.getUrl().toString())) {
-            destroy();
+            baseDriver.destoty();
             String pname = document.select("span[class=nameProduct]").text();
             String classification = document.select("li[class=lv1 selected]").text();
             String Introduction = document.select("div[class=descriptionTab descriptionContent]").text();

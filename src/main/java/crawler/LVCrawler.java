@@ -3,6 +3,7 @@ package crawler;
 import base.BaseCrawler;
 import com.google.common.base.Joiner;
 import core.model.Product;
+import factory.WebDriverComponent;
 import org.apache.logging.log4j.util.Strings;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -26,6 +27,10 @@ public class LVCrawler extends BaseCrawler {
 
     public LVCrawler(int threadDept) {
         super(threadDept);
+        //初始化的时候初始化 webdriver
+        baseDriver = new WebDriverComponent();
+        //创建一个driver 超时时间设置为3s
+        webDriver = baseDriver.create(3);
     }
 
     public static void main(String[] args) {
@@ -71,7 +76,7 @@ public class LVCrawler extends BaseCrawler {
             logger.info("nav page is starting>>>" + page.getUrl().toString());
             Document document1 = null;
             try {
-                document1 = getNextPager(page);
+                document1 = baseDriver.getNextPager(page, webDriver);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -86,7 +91,7 @@ public class LVCrawler extends BaseCrawler {
         }
 
         if (detailList.contains(page.getUrl().toString())) {
-            destroy();
+            baseDriver.destoty();
             logger.info("detail page is starting>>>" + page.getUrl().toString());
             String pname = document.getElementsByClass("productName title").text();
             String ref = document.select("div[class=sku reading-and-link-text]").text();

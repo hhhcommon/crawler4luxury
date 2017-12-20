@@ -4,21 +4,16 @@ import base.BaseCrawler;
 import com.google.common.base.Joiner;
 import common.RegexUtil;
 import core.model.Product;
+import factory.WebDriverComponent;
 import org.apache.logging.log4j.util.Strings;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-import org.openqa.selenium.By;
-import org.openqa.selenium.JavascriptExecutor;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
-import org.openqa.selenium.chrome.ChromeDriver;
 import pipeline.CrawlerPipeline;
 import us.codecraft.webmagic.Page;
 import us.codecraft.webmagic.Site;
 import us.codecraft.webmagic.Spider;
 import us.codecraft.webmagic.monitor.SpiderMonitor;
-import us.codecraft.webmagic.selector.Html;
 
 import javax.management.JMException;
 import java.util.ArrayList;
@@ -35,7 +30,10 @@ public class JimmyChooCrawler extends BaseCrawler {
 
     public JimmyChooCrawler(int threadDept) {
         super(threadDept);
-        System.getProperties().setProperty("webdriver.chrome.driver", "D:\\java\\chromedriver.exe");
+        //初始化的时候初始化 webdriver
+        baseDriver = new WebDriverComponent();
+        //创建一个driver 超时时间设置为3s
+        webDriver = baseDriver.create(3);
     }
 
     @Override
@@ -76,7 +74,7 @@ public class JimmyChooCrawler extends BaseCrawler {
         }
         //获取详情页面
         if (navList.contains(page.getUrl().toString())) {
-            Document document1 = getNextPager(page);
+            Document document1 = baseDriver.getNextPager(page, webDriver);
             Elements elements = document1.getElementsByClass("js-producttile_link");
             for (Element element : elements) {
                 String link = element.attr("href");
@@ -88,7 +86,7 @@ public class JimmyChooCrawler extends BaseCrawler {
         }
         //解析详情页面
         if (detailList.contains(page.getUrl().toString())) {
-            destroy();
+            baseDriver.destoty();
             String pname = document.select("h1.product-name").text();
             String prize = document.getElementsByClass("text-uppercase").attr("content");
             String desc = document.getElementById("tab2").text();

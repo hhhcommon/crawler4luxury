@@ -6,6 +6,7 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
 import common.HttpRequestUtil;
 import common.RegexUtil;
+import factory.WebDriverComponent;
 import model.Alexandermcqueen;
 import model.ColorAlexander;
 import core.model.Product;
@@ -19,14 +20,12 @@ import us.codecraft.webmagic.Site;
 import us.codecraft.webmagic.Spider;
 
 import us.codecraft.webmagic.monitor.SpiderMonitor;
-import us.codecraft.webmagic.processor.PageProcessor;
 
 
 import javax.management.JMException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.logging.Logger;
 
 /**
  * @Author: yang
@@ -41,6 +40,10 @@ public class AlexanderMcQueenCrawler extends BaseCrawler {
 
     public AlexanderMcQueenCrawler(int threadDept) {
         super(threadDept);
+        //初始化的时候初始化 webdriver
+        baseDriver = new WebDriverComponent();
+        //创建一个driver 超时时间设置为3s
+        webDriver = baseDriver.create(3);
     }
 
     public static void main(String[] args) {
@@ -84,7 +87,7 @@ public class AlexanderMcQueenCrawler extends BaseCrawler {
 
         if (navList.contains(page.getUrl().toString())) {
             logger.info("process>>>>>>>>>>>" + page.getUrl());
-            document = getNextPager(page);
+            document = baseDriver.getNextPager(page, webDriver);
             //每页获取 每个详情页
             Elements elements = document.select("article");
             if (elements.size() > 0) {
@@ -100,7 +103,7 @@ public class AlexanderMcQueenCrawler extends BaseCrawler {
          * 这里是分析详情页的地方
          */
         if (detailList.contains(page.getUrl().toString())) {
-            destroy();
+            baseDriver.destoty();
             Product product = analyticalData(page);
             //加入数据
             if (!Objects.isNull(product) && !Strings.isNullOrEmpty(product.getName())) {
@@ -220,14 +223,13 @@ public class AlexanderMcQueenCrawler extends BaseCrawler {
 
 
     public Site getSite() {
-        if (site == null) {
-            site = Site.me()
-                    .setDomain("www.alexandermcqueen.com")
-                    .setUserAgent("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_2) AppleWebKit/537.31 (KHTML, like Gecko) Chrome/26.0.1410.65 Safari/537.31")
-                    .setCharset("utf-8")
-                    .setTimeOut(5000)
-                    .setSleepTime(3000);
-        }
+        site = Site.me()
+                .setDomain("www.alexandermcqueen.com")
+                .setUserAgent("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_2) AppleWebKit/537.31 (KHTML, like Gecko) Chrome/26.0.1410.65 Safari/537.31")
+                .setCharset("utf-8")
+                .setTimeOut(5000)
+                .setRetryTimes(3)
+                .setSleepTime(1000);
         return site;
     }
 

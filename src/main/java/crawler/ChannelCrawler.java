@@ -8,6 +8,7 @@ import common.HttpRequestUtil;
 import common.JsonParseUtil;
 import common.RegexUtil;
 import core.model.Product;
+import factory.WebDriverComponent;
 import io.netty.util.internal.ObjectUtil;
 import model.ChannelJson;
 import org.apache.logging.log4j.util.Strings;
@@ -44,7 +45,6 @@ public class ChannelCrawler extends BaseCrawler {
      * 存储 http://www.chanel.com/zh_CN/fashion/products/ready-to-wear/g.cruise-2017-18.c.18C.html 这种类型的链接
      */
     private List<String> requestUrlContent = new ArrayList<>();
-
     /**
      * 存储 最终的内容链接
      */
@@ -56,7 +56,7 @@ public class ChannelCrawler extends BaseCrawler {
 
     public static void main(String[] args) {
         DbUtil.init();
-        new ChannelCrawler(1).run();
+        new ChannelCrawler(3).run();
     }
 
     @Override
@@ -77,16 +77,16 @@ public class ChannelCrawler extends BaseCrawler {
         } catch (JMException e) {
             e.printStackTrace();
         }
-        spider.start();
+        spider.run();
     }
 
     @Override
     public void process(Page page) {
+        init();
         logger.info("process>>>>>>" + page.getUrl().toString());
         Document document = page.getHtml().getDocument();
         List<String> requestUrl = new ArrayList<>();
         if (page.getUrl().regex("http://www.chanel.com/zh_CN/fashion.html#products").match()) {
-
             Elements requestEl = document.getElementsByClass("fs-navigation-secondary-menu__list fs-menu-product-lines").first().getElementsByTag("ul").first().getElementsByTag("li");
             ObjectUtil.checkNotNull(requestEl, "requestEl");
             requestUrl.clear();
@@ -134,9 +134,6 @@ public class ChannelCrawler extends BaseCrawler {
 
         }
 
-            /*
-            分析内容页
-             */
         if (requestUrlFinal.contains(page.getUrl().toString())) {
             String name = document.select("h1[itemprop=name]").first().text();
             List<String> img = new ArrayList<String>();
@@ -183,14 +180,18 @@ public class ChannelCrawler extends BaseCrawler {
             } catch (Exception e) {
                 logger.info("该链接不支持json方式！");
             }
-
-            document = getNextPager(page);
-            String ref = document.select("div[class=ref info] p").first().text();
+            document = baseDriver.getNextPager(page, webDriver);
+            String ref = null;
+            try {
+                ref = document.select("div[class=ref info] p").first().text();
+            } catch (Exception e) {
+                logger.info("获取ref 出现问题" + e.toString());
+            }
             String size = null;
             try {
                 size = RegexUtil.getDataByRegex("<p class=\"size info\">(.*?)</p>", page.getHtml().toString());
             } catch (Exception e) {
-
+                logger.info("size 出现问题" + e.toString());
             }
             String classification = "";
             List<String> arr = RegexUtil.matchGroup(reg, page.getUrl().toString());
@@ -206,8 +207,18 @@ public class ChannelCrawler extends BaseCrawler {
                 int number = Integer.parseInt(num);
                 price = document.select("div[class=information-prices] p[class=price info]").eq(number - 1).text();
             }
-            String desc = document.select("p[class=description info matCol ]").first().getElementsByTag("span").first().text();
-            String color = document.select("p[class=description info matCol ]").first().getElementsByTag("span").eq(1).text();
+            String desc = null;
+            try {
+                desc = document.select("p[class=description info matCol ]").first().getElementsByTag("span").first().text();
+            } catch (Exception e) {
+                logger.info("desc 出现问题" + e.toString());
+            }
+            String color = null;
+            try {
+                color = document.select("p[class=description info matCol ]").first().getElementsByTag("span").eq(1).text();
+            } catch (Exception e) {
+                logger.info("color 出现问题" + e.toString());
+            }
             Product p = new Product();
             p.setBrand("chanel");
             p.setClassification(classification);
@@ -238,14 +249,29 @@ public class ChannelCrawler extends BaseCrawler {
         return price;
     }
 
+    /**
+     * 初始化
+     */
+    public void init() {
+        //初始化的时候初始化 webdriver
+        if (baseDriver == null) {
+
+            baseDriver = new WebDriverComponent();
+        }
+        if (webDriver == null) {
+            //创建一个driver 超时时间设置为3s
+            webDriver = baseDriver.create(3);
+        }
+    }
+
     @Override
     public Site getSite() {
-
         site = Site.me()
                 .setDomain("www.chanel.com")
+                .setCharset("utf-8")
+                .setTimeOut(5000)
                 .setRetryTimes(3)
-                .setUserAgent("Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.9 Safari/537.36")
-                .setSleepTime(1000);
+                .setUserAgent("Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.9 Safari/537.36");
         return site;
     }
 }

@@ -38,8 +38,8 @@ public class BurberryCrawler extends BaseCrawler {
     }
 
     public static void main(String[] args) {
-        DbUtil.init();
-        new BurberryCrawler(1).run();
+        String p = "¥4,830.00";
+        System.out.println(p.split("¥")[1]);
     }
 
     @Override
@@ -143,7 +143,11 @@ public class BurberryCrawler extends BaseCrawler {
             }
         }
         product.setImg(Joiner.on("|").join(temp));
-        product.setPrice(document.getElementsByClass("product-purchase_price").first().text());
+        try {
+            product.setPrice(document.getElementsByClass("product-purchase_price").first().text().split("¥")[1]);
+        } catch (Exception e) {
+            logger.info("--------------价格转化 发生错误----------------");
+        }
         product.setRef(RegexUtil.getDataByRegex("(\\d+)", document.getElementsByClass("product-purchase_item-number").first().text()));
         product.setIntroduction(document.getElementsByClass("accordion-tab_content").first().text());
 
@@ -220,8 +224,7 @@ public class BurberryCrawler extends BaseCrawler {
                 .addHeader("referer", "https://cn.burberry.com/womens-new-arrivals-new-in/")
                 .addHeader("x-csrf-token", getCode())
                 .setRetryTimes(3)
-                .setTimeOut(5000)
-                .setSleepTime(1000);
+                .setTimeOut(5000);
         return site;
     }
 

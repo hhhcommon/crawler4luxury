@@ -45,11 +45,6 @@ public abstract class BaseCrawler implements Runnable, PageProcessor {
 
     public BaseCrawler(int threadDept) {
         this.threadDept = threadDept;
-        System.getProperties().setProperty("webdriver.chrome.driver", BaseCrawler.class.getClassLoader().getResource("chromedriver.exe").getPath());
-    }
-
-    public BaseCrawler(Site site) {
-        this.site = site;
     }
 
     protected static final Logger logger = Logger.getLogger(String.valueOf(BaseCrawler.class));
@@ -66,7 +61,7 @@ public abstract class BaseCrawler implements Runnable, PageProcessor {
 
     protected WebDriver webDriver;
 
-    protected int runTime = 0;
+    protected BaseDriver baseDriver;
 
     public Spider getSpider() {
         return spider;
@@ -80,110 +75,6 @@ public abstract class BaseCrawler implements Runnable, PageProcessor {
             spider.stop();
         }
 
-    }
-
-    /**
-     * 针对下拉分页的网站
-     *
-     * @param page
-     * @return
-     */
-    public synchronized Document getNextPager(Page page) {
-        if (runTime == 0) {
-            webDriver = new ChromeDriver();
-        }
-        runTime++;
-        logger.info("Selenium runTime>>>>" + runTime);
-        Html html;
-        try {
-            //设置超时时间
-            webDriver.manage().timeouts().setScriptTimeout(3, TimeUnit.SECONDS);
-            webDriver.get(page.getUrl().toString());
-        } catch (Exception e) {
-            webDriver = new ChromeDriver();
-            webDriver.get(page.getUrl().toString());
-        } finally {
-            while (true) {
-                try {
-                    //休眠6秒 防止 没加载出来就退出了
-                    Thread.sleep(1000);
-                    //判断是否翻到底了
-                    if (SeleniumUtils.checkIsFlipPages(webDriver)) {
-                        break;
-                    }
-                    //向下翻页
-                    SeleniumUtils.rollDown(webDriver);
-                    Thread.sleep(3000);
-                } catch (InterruptedException e) {
-                    continue;
-                }
-            }
-            WebElement webElement = webDriver.findElement(By.xpath("/html"));
-            html = new Html(webElement.getAttribute("outerHTML"));
-        }
-        //如果跑完之后 关闭
-        if (navList.size() == runTime) {
-            webDriver.close();
-        }
-        return html.getDocument();
-    }
-
-    /**
-     * 翻页 +点击
-     *
-     * @param page
-     * @param ClickText
-     * @return
-     */
-    public synchronized Document getNextPager(Page page, String ClickText) {
-        if (runTime == 0) {
-            webDriver = new ChromeDriver();
-        }
-        runTime++;
-        logger.info("Selenium runTime>>>>" + runTime);
-        Html html;
-        try {
-            //设置超时时间
-            webDriver.manage().timeouts().setScriptTimeout(3, TimeUnit.SECONDS);
-            webDriver.get(page.getUrl().toString());
-        } catch (Exception e) {
-            webDriver = new ChromeDriver();
-            webDriver.manage().timeouts().setScriptTimeout(3, TimeUnit.SECONDS);
-            webDriver.get(page.getUrl().toString());
-        } finally {
-            while (true) {
-                try {
-
-                    if (!Strings.isBlank(ClickText)) {
-                        SeleniumUtils.click(webDriver, ClickText);
-                    }
-                    //休眠6秒 防止 没加载出来就退出了
-                    Thread.sleep(3000);
-                    //判断是否翻到底了
-                    if (SeleniumUtils.checkIsFlipPages(webDriver)) {
-                        break;
-                    }
-                    //向下翻页
-                    SeleniumUtils.rollDown(webDriver);
-                    Thread.sleep(3000);
-                } catch (InterruptedException e) {
-                    continue;
-                }
-            }
-            WebElement webElement = webDriver.findElement(By.xpath("/html"));
-            html = new Html(webElement.getAttribute("outerHTML"));
-        }
-        return html.getDocument();
-    }
-
-    /**
-     * 销毁webderive
-     */
-    protected void destroy() {
-        if (webDriver != null) {
-            webDriver.close();
-            webDriver = null;
-        }
     }
 
 }

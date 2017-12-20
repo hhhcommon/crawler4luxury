@@ -7,6 +7,7 @@ import com.google.common.base.Strings;
 import common.HttpRequestUtil;
 import common.RegexUtil;
 import core.model.Product;
+import factory.WebDriverComponent;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
@@ -29,6 +30,10 @@ import java.util.List;
 public class YslCrawler extends BaseCrawler {
     public YslCrawler(int threadDept) {
         super(threadDept);
+        //初始化的时候初始化 webdriver
+        baseDriver = new WebDriverComponent();
+        //创建一个driver 超时时间设置为3s
+        webDriver = baseDriver.create(3);
     }
 
     @Override
@@ -64,7 +69,7 @@ public class YslCrawler extends BaseCrawler {
 
         if (navList.contains(page.getUrl().toString())) {
             logger.info("nav>>>>" + page.getUrl().toString());
-            Document document1 = getNextPager(page);
+            Document document1 = baseDriver.getNextPager(page, webDriver);
             Elements elements = document1.select("article[class=item]");
             for (Element element : elements) {
                 String detailLink = element.getElementsByTag("a").first().attr("href");
@@ -77,7 +82,7 @@ public class YslCrawler extends BaseCrawler {
 
         if (detailList.contains(page.getUrl().toString())) {
             logger.info("detail>>>" + page.getUrl().toString());
-            destroy();
+            baseDriver.destoty();
             String pname = document.select("h1[class=productName]").text();
             String classification = null;
             try {
