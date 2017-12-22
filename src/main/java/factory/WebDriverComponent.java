@@ -42,12 +42,10 @@ public class WebDriverComponent extends DriverComponent {
      */
     @Override
     public void destoty() {
-
         if (webDriver != null) {
             webDriver.close();
             webDriver = null;
         }
-
     }
 
     @Override
@@ -55,6 +53,35 @@ public class WebDriverComponent extends DriverComponent {
         Html html;
         try {
             webDriver.get(page.getUrl().toString());
+        } catch (Exception e) {
+            throw new IllegalArgumentException("getNextPager发生错误了!" + e.toString());
+        } finally {
+            while (true) {
+                try {
+                    //休眠1秒 防止 没加载出来就退出了
+                    Thread.sleep(1000);
+                    //判断是否翻到底了
+                    if (SeleniumUtils.checkIsFlipPages(webDriver)) {
+                        break;
+                    }
+                    //向下翻页
+                    SeleniumUtils.rollDown(webDriver);
+                    Thread.sleep(3000);
+                } catch (InterruptedException e) {
+                    break;
+                }
+            }
+            WebElement webElement = webDriver.findElement(By.xpath("/html"));
+            html = new Html(webElement.getAttribute("outerHTML"));
+        }
+        return html.getDocument();
+    }
+
+    @Override
+    public Document getNextPager(String url, WebDriver webDriver) {
+        Html html;
+        try {
+            webDriver.get(url);
         } catch (Exception e) {
             throw new IllegalArgumentException("getNextPager发生错误了!" + e.toString());
         } finally {

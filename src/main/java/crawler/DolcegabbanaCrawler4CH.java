@@ -25,10 +25,13 @@ import java.util.List;
 /**
  * @Author: yang
  * @Date: 2017/12/7.17:23
- * @Desc: DolcegabbanaCrawler4Hk
+ * @Desc: DolcegabbanaCrawler4Hk  多个site 的采集 改变header 才能更换国家
  */
 public class DolcegabbanaCrawler4CH extends BaseCrawler {
-
+    /**
+     * urls
+     */
+    protected static List<String> urls = new ArrayList<>();
     public DolcegabbanaCrawler4CH(int threadDept) {
         super(threadDept);
     }

@@ -27,6 +27,10 @@ import java.util.List;
  * @Desc: GucciCrawler
  */
 public class GucciCrawler extends BaseCrawler {
+    /**
+     * urls
+     */
+    protected static List<String> urls = new ArrayList<>();
 
     public GucciCrawler(int threadDept) {
         super(threadDept);

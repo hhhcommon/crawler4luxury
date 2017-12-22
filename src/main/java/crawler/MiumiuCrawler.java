@@ -26,6 +26,10 @@ import java.util.Objects;
  * @Desc: to MiumiuCrawler
  */
 public class MiumiuCrawler extends BaseCrawler {
+    /**
+     * urls
+     */
+    protected static List<String> urls = new ArrayList<>();
 
     public MiumiuCrawler(int threadDept) {
         super(threadDept);

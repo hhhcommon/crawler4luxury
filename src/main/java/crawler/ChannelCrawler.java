@@ -22,11 +22,14 @@ import us.codecraft.webmagic.downloader.HttpClientDownloader;
 import us.codecraft.webmagic.monitor.SpiderMonitor;
 import us.codecraft.webmagic.proxy.Proxy;
 import us.codecraft.webmagic.proxy.SimpleProxyProvider;
+import us.codecraft.webmagic.scheduler.RedisScheduler;
 
 import javax.management.JMException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * @Author: yang
@@ -55,7 +58,7 @@ public class ChannelCrawler extends BaseCrawler {
 
     public static void main(String[] args) {
         DbUtil.init();
-        new ChannelCrawler(3).run();
+        new ChannelCrawler(1).run();
     }
 
     @Override
@@ -69,6 +72,7 @@ public class ChannelCrawler extends BaseCrawler {
         spider = Spider.create(new ChannelCrawler(threadDept))
                 .addUrl("http://www.chanel.com/zh_CN/fashion.html#products")
                 .addPipeline(new CrawlerPipeline())
+                .setScheduler(new RedisScheduler("127.0.0.1"))
                 .thread(threadDept);
         spider.setDownloader(httpClientDownloader);
         try {
@@ -81,7 +85,6 @@ public class ChannelCrawler extends BaseCrawler {
 
     @Override
     public void process(Page page) {
-        init();
         logger.info("process>>>>>>" + page.getUrl().toString());
         Document document = page.getHtml().getDocument();
         List<String> requestUrl = new ArrayList<>();
@@ -132,16 +135,13 @@ public class ChannelCrawler extends BaseCrawler {
             }
 
         }
+        if (requestUrlFinal.contains(page.getUrl().toString()) || page.getUrl().regex(reg).match()) {
 
-        if (requestUrlFinal.contains(page.getUrl().toString())) {
             String name = document.select("h1[itemprop=name]").first().text();
             List<String> img = new ArrayList<String>();
             Elements elements = document.select("img[class=lazyloaded]");
             String language = "zh_CN";
-            int i = 0;
             for (Element element : elements) {
-                i++;
-                if (elements.size() / 2 < i) break;
                 img.add("http://www.chanel.com" + element.attr("data-src"));
             }
             try {
@@ -151,10 +151,11 @@ public class ChannelCrawler extends BaseCrawler {
                     String html = HttpRequestUtil.sendGet(jsonUrl);
                     String jsonData = JsonParseUtil.getString(html, page.getUrl().toString().replaceAll("http://www.chanel.com", ""));
                     ChannelJson channelJsons = JSON.parseObject(jsonData, ChannelJson.class);
-                    Product product = new Product();
+
                     List<ChannelJson.DataBeanX.DetailsBean.InformationBean> list = channelJsons.getData().getDetails().getInformation();
                     for (ChannelJson.DataBeanX.DetailsBean.InformationBean listData : list) {
                         for (ChannelJson.DataBeanX.DetailsBean.InformationBean.DatasBean l : listData.getDatas()) {
+                            Product product = new Product();
                             product.setName(l.getTitle());
                             product.setColor(l.getColor());
                             product.setMaterial(l.getMaterial());
@@ -163,75 +164,74 @@ public class ChannelCrawler extends BaseCrawler {
                             product.setUrl(page.getUrl().toString());
                             //请求价格
                             product.setPrice(getRefPrice("zh_CN", l));
-                            product.setHkPrice(getRefPrice("en_HK", l));
-                            product.setEnPrice(getRefPrice("en_GB", l));
-                            product.setEurPrice(getRefPrice("fr_BE", l));
+//                            product.setHkPrice(getRefPrice("en_HK", l));
+//                            product.setEnPrice(getRefPrice("en_GB", l));
+//                            product.setEurPrice(getRefPrice("fr_BE", l));
                             //同一个系列的图片放到相同的图片
                             product.setImg(Joiner.on("|").join(img));
                             product.setClassification(listData.getTitle());
                             product.setBrand("chanel");
                             page.putField("product", product);
-                            return;
                         }
                     }
+                    return;
+                } else {
+                    String price = null;
+                    String ref = null;
+                    try {
+                        ref = document.select("div[class=ref info] p").first().text();
+                        price = getRefPrice("zh_CN", replaceBlank(ref.substring(0, 13)));
+                    } catch (Exception e) {
+                        logger.info("获取ref 出现问题" + e.toString());
+                    }
+                    String size = null;
+                    try {
+                        size = RegexUtil.getDataByRegex("<p class=\"size info\">(.*?)</p>", page.getHtml().toString());
+                    } catch (Exception e) {
+                        logger.info("size 出现问题" + e.toString());
+                    }
+                    String classification = "";
+                    List<String> arr = RegexUtil.matchGroup(reg, page.getUrl().toString());
+                    if (arr.size() == 2) {
+                        language = arr.get(0);
+                        classification = arr.get(1);
+                    }
+                    List<String> tagarr = RegexUtil.matchGroup("<span itemprop=\"title\">(.*?)</span>", page.getHtml().toString());
+                    String tags = tagarr.get(2);
+
+                    String desc = null;
+                    try {
+                        desc = document.select("p[class=description info matCol ]").first().getElementsByTag("span").first().text();
+                    } catch (Exception e) {
+                        logger.info("desc 出现问题" + e.toString());
+                    }
+                    String color = null;
+                    try {
+                        color = document.select("div[class=product-scroll-detail-wrapper]").first().getElementsByTag("div").eq(2).text();
+                    } catch (Exception e) {
+                        logger.info("color 出现问题" + e.toString());
+                    }
+                    Product p = new Product();
+                    p.setBrand("chanel");
+                    p.setClassification(classification);
+                    p.setColor(color);
+                    p.setImg(Joiner.on("|").join(img));
+                    p.setName(name);
+                    p.setUrl(page.getUrl().toString());
+                    p.setLanguage(language);
+                    p.setIntroduction(desc);
+                    p.setRef(ref);
+                    p.setSize(size);
+                    p.setPrice(price);
+                    p.setTags(tags);
+                    page.putField("product", p);
                 }
 
             } catch (Exception e) {
                 logger.info("该链接不支持json方式！");
             }
-            document = driverComponent.getNextPager(page, webDriver);
-            String ref = null;
-            try {
-                ref = document.select("div[class=ref info] p").first().text();
-            } catch (Exception e) {
-                logger.info("获取ref 出现问题" + e.toString());
-            }
-            String size = null;
-            try {
-                size = RegexUtil.getDataByRegex("<p class=\"size info\">(.*?)</p>", page.getHtml().toString());
-            } catch (Exception e) {
-                logger.info("size 出现问题" + e.toString());
-            }
-            String classification = "";
-            List<String> arr = RegexUtil.matchGroup(reg, page.getUrl().toString());
-            if (arr.size() == 2) {
-                language = arr.get(0);
-                classification = arr.get(1);
-            }
-            List<String> tagarr = RegexUtil.matchGroup("<span itemprop=\"title\">(.*?)</span>", page.getHtml().toString());
-            String tags = tagarr.get(2);
-            String num = document.select("h2[class=page-num no-select]").text();
-            String price = "";
-            if (!Strings.isBlank(num)) {
-                int number = Integer.parseInt(num);
-                price = document.select("div[class=information-prices] p[class=price info]").eq(number - 1).text();
-            }
-            String desc = null;
-            try {
-                desc = document.select("p[class=description info matCol ]").first().getElementsByTag("span").first().text();
-            } catch (Exception e) {
-                logger.info("desc 出现问题" + e.toString());
-            }
-            String color = null;
-            try {
-                color = document.select("p[class=description info matCol ]").first().getElementsByTag("span").eq(1).text();
-            } catch (Exception e) {
-                logger.info("color 出现问题" + e.toString());
-            }
-            Product p = new Product();
-            p.setBrand("chanel");
-            p.setClassification(classification);
-            p.setColor(color);
-            p.setImg(Joiner.on("|").join(img));
-            p.setName(name);
-            p.setUrl(page.getUrl().toString());
-            p.setLanguage(language);
-            p.setIntroduction(desc);
-            p.setRef(ref);
-            p.setSize(size);
-            p.setPrice(price);
-            p.setTags(tags);
-            page.putField("product", p);
+
+
         }
     }
 
@@ -248,7 +248,28 @@ public class ChannelCrawler extends BaseCrawler {
         return price;
     }
 
+    private String getRefPrice(String local, String refPrice) {
 
+        String price = null;
+        try {
+            String priceUrl = "http://ws.chanel.com/pricing/pricing_db/" + local + "/fashion/" + refPrice + "/?i_division=FSH&i_project=fsh_v3&i_client_interface=fsh_v3_misc&i_locale=" + local + "&format=json&callback=localJsonpPricingCallbackde59ebceb39f738952933882ef45e6ed";
+            String jsonPrice = HttpRequestUtil.sendGet(priceUrl);
+            price = RegexUtil.getDataByRegex("\"amount\":\"(.*?)\"", jsonPrice);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return price;
+    }
+
+    public String replaceBlank(String str) {
+        String dest = "";
+        if (str != null) {
+            Pattern p = Pattern.compile("\\s*|\t|\r|\n");
+            Matcher m = p.matcher(str);
+            dest = m.replaceAll("");
+        }
+        return dest;
+    }
 
     @Override
     public Site getSite() {

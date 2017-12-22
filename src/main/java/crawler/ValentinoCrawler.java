@@ -26,7 +26,10 @@ import java.util.List;
  * @Desc: ValentinoCrawler
  */
 public class ValentinoCrawler extends BaseCrawler {
-
+    /**
+     * urls
+     */
+    protected  static List<String> urls = new ArrayList<>();
 
     public ValentinoCrawler(int threadDept) {
         super(threadDept);

@@ -23,7 +23,10 @@ import java.util.List;
  * @Desc: HermesCrawler https://www.hermes.com/us/en/
  */
 public class HermesCrawler extends BaseCrawler {
-
+    /**
+     * urls
+     */
+    protected static List<String> urls = new ArrayList<>();
 
     public HermesCrawler(int threadDept) {
         super(threadDept);

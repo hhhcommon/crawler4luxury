@@ -1,8 +1,10 @@
 package crawler;
 
 import base.BaseCrawler;
+import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
 import common.DbUtil;
+import common.HttpRequestUtil;
 import common.JsonParseUtil;
 import common.RegexUtil;
 import core.model.Product;
@@ -18,8 +20,11 @@ import us.codecraft.webmagic.Page;
 import us.codecraft.webmagic.Site;
 import us.codecraft.webmagic.Spider;
 import us.codecraft.webmagic.monitor.SpiderMonitor;
+import us.codecraft.webmagic.scheduler.RedisScheduler;
+import us.codecraft.webmagic.selector.Html;
 
 import javax.management.JMException;
+import javax.swing.text.html.HTML;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -35,6 +40,13 @@ public class DiorCrawler extends BaseCrawler {
     public DiorCrawler(int threadDept) {
         super(threadDept);
     }
+
+    /**
+     * urls
+     */
+    protected static List<String> urls = new ArrayList<>();
+
+    protected List<String> deepUrls = new ArrayList<>();
 
     private static final String HTTP_REG = "[a-zA-z]+://[^\\s]*";
     private static final String DATA_REG = "data-track-object=\\{(.*?)\\}> <img ";
@@ -97,50 +109,50 @@ public class DiorCrawler extends BaseCrawler {
             if (!Objects.isNull(elements)) {
                 try {
                     for (Element element : elements) {
-                        String temp = element.outerHtml();
-                        temp = temp.replaceAll("\\\"", "");
-                        //json
-                        String json = RegexUtil.getDataByRegex(DATA_REG, temp);
-                        if (StringEscapeUtils.unescapeHtml4(json) == null) {
-                            return;
+                        String link = "https://www.dior.cn" + element.getElementsByTag("a").attr("href");
+                        if (!Strings.isNullOrEmpty(link)) {
+                            deepUrls.add(link);
+                            page.addTargetRequest(link);
                         }
-                        json = "{" + StringEscapeUtils.unescapeHtml4(json) + "}";
-                        //图片
-                        String img = element.getElementsByClass("push-pic push-pic--border").first().getElementsByTag("img").attr("src");
-                        //diorJson的实体
-                        DiorJson diorJson = JsonParseUtil.getBean(json, DiorJson.class);
-                        Product product = new Product();
-                        product.setClassification(diorJson.getEcommerce().getClick().getProducts().get(0).getCategory());
-                        product.setUrl(page.getUrl().toString());
-                        product.setBrand("dior");
-                        product.setImg(img);
-                        product.setName(diorJson.getEcommerce().getClick().getProducts().get(0).getName());
-                        product.setIntroduction(diorJson.getEcommerce().getClick().getProducts().get(0).getVariant());
-                        if (page.getUrl().toString().contains("zh_hk")) {
-                            //香港价格
-                            product.setLanguage("zh_hk");
-                            product.setHkPrice(diorJson.getEcommerce().getClick().getProducts().get(0).getPrice());
-                        }
-                        if (page.getUrl().toString().contains("zh_cn")) {
-                            product.setLanguage("zh_CN");
-                            product.setPrice(diorJson.getEcommerce().getClick().getProducts().get(0).getPrice());
-                        }
-                        if (page.getUrl().toString().contains("de_de")) {
-                            product.setLanguage("de_de");
-                            product.setEurPrice(diorJson.getEcommerce().getClick().getProducts().get(0).getPrice());
-                        }
-                        if (page.getUrl().toString().contains("en_gb")) {
-                            product.setLanguage("en_gb");
-                            product.setEnPrice(diorJson.getEcommerce().getClick().getProducts().get(0).getPrice());
-                        }
-                        product.setRef(diorJson.getEcommerce().getClick().getProducts().get(0).getCode());
-                        page.putField("product", product);
+
                     }
                 } catch (Exception e) {
-                    logger.info("转化错误>>>>>");
                 }
             }
-
+        }
+        if (deepUrls.contains(page.getUrl().toString())) {
+            Product product = new Product();
+            String reg = "\"productPrice\":\"(.*?)\",";
+            //获取价格
+            String price = RegexUtil.getDataByRegex(reg, document.outerHtml());
+            if (page.getUrl().toString().contains("zh_hk")) {
+                //香港价格
+                product.setLanguage("zh_hk");
+                product.setHkPrice(price);
+            }
+            if (page.getUrl().toString().contains("zh_cn")) {
+                product.setLanguage("zh_CN");
+                product.setPrice(price);
+            }
+            if (page.getUrl().toString().contains("de_de")) {
+                product.setLanguage("de_de");
+                product.setEurPrice(price);
+            }
+            if (page.getUrl().toString().contains("en_gb")) {
+                product.setLanguage("en_gb");
+                product.setEnPrice(price);
+            }
+            String name = document.select("meta[name=gsa-subtitle]").attr("content");
+            String ref = document.select("meta[name=gsa-productcode]").attr("content");
+            String desc = document.select("div[class=product-description-content]").text();
+            String img = document.select("meta[name=gsa-image]").attr("content");
+            product.setBrand("dior");
+            product.setUrl(page.getUrl().toString());
+            product.setName(name);
+            product.setIntroduction(desc);
+            product.setImg(img);
+            product.setRef(ref);
+            page.putField("product", product);
         }
     }
 
@@ -149,7 +161,6 @@ public class DiorCrawler extends BaseCrawler {
     public Site getSite() {
         site = Site.me()
                 .setUserAgent("Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.9 Safari/537.36")
-                .setSleepTime(1000)
                 .setRetryTimes(3)
                 .setTimeOut(5000);
         return site;

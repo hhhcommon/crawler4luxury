@@ -26,6 +26,10 @@ import java.util.List;
  */
 public class JimmyChooCrawler extends BaseCrawler {
 
+    /**
+     * urls
+     */
+    protected static List<String> urls = new ArrayList<>();
     private static String reg = "http://row.jimmychoo.com/.*?/.*?/.*?/.*?";
 
     public JimmyChooCrawler(int threadDept) {
@@ -55,6 +59,7 @@ public class JimmyChooCrawler extends BaseCrawler {
     @Override
     public void process(Page page) {
         logger.info(">>>>process start<<<<" + page.getUrl().toString());
+        init();
         Document document = page.getHtml().getDocument();
         if (urls.contains(page.getUrl().toString())) {
             //获取navs

@@ -28,6 +28,10 @@ import java.util.List;
  * @Desc: DolcegabbanaCrawler4Hk
  */
 public class DolcegabbanaCrawler4Hk extends BaseCrawler {
+    /**
+     * urls
+     */
+    protected static List<String> urls = new ArrayList<>();
 
     public DolcegabbanaCrawler4Hk(int threadDept) {
         super(threadDept);
@@ -52,11 +56,6 @@ public class DolcegabbanaCrawler4Hk extends BaseCrawler {
                 .addPipeline(new CrawlerPipeline())
                 .thread(threadDept);
         spider.setDownloader(httpClientDownloader);
-        try {
-            SpiderMonitor.instance().register(spider);
-        } catch (JMException e) {
-            e.printStackTrace();
-        }
         spider.start();
     }
 

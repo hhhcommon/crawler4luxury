@@ -29,7 +29,7 @@ public class CrawlerPipeline implements Pipeline {
                     logger.info("成功采集【" + product.getName().trim() + "】");
                 }
             } else {
-                //更新价格
+//                //更新价格
                 if (!Strings.isBlank(product.getPrice())) {
                     productFromDb.setPrice(product.getPrice());
                 }

@@ -19,10 +19,6 @@ import java.util.logging.Logger;
 public abstract class BaseCrawler implements Runnable, PageProcessor {
 
     /**
-     * urls
-     */
-    protected static List<String> urls = new ArrayList<>();
-    /**
      * navs
      */
     protected List<String> navList = new ArrayList<>();

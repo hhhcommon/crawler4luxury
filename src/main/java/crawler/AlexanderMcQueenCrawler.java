@@ -33,7 +33,10 @@ import java.util.Objects;
  * @desc: AlexanderMcQueenCrawler  is ok'
  */
 public class AlexanderMcQueenCrawler extends BaseCrawler {
-
+    /**
+     * urls
+     */
+    protected static List<String> urls = new ArrayList<>();
     private static String reg = "http://www.alexandermcqueen.cn/.*?/alexandermcqueen/.*.html#dept=\\w+";
 
     private static String hkreg = "http://www.alexandermcqueen.com/.*?/alexandermcqueen/.*.html#dept=\\w+";

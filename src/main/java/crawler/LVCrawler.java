@@ -24,6 +24,10 @@ import java.util.List;
  * @Desc: LVCrawler
  */
 public class LVCrawler extends BaseCrawler {
+    /**
+     * urls
+     */
+    protected static List<String> urls = new ArrayList<>();
 
     public LVCrawler(int threadDept) {
         super(threadDept);

@@ -24,12 +24,17 @@ import java.util.List;
 /**
  * @Author: yang
  * @Date: 2017/12/14.13:53
- * @Desc: YslCrawler
+ * @Desc: YslCrawler  价格有点问题
  */
 public class YslCrawler extends BaseCrawler {
     public YslCrawler(int threadDept) {
         super(threadDept);
     }
+
+    /**
+     * urls
+     */
+    protected static List<String> urls = new ArrayList<>();
 
     @Override
     public void run() {

@@ -45,6 +45,9 @@ public abstract class DriverComponent {
      */
     public abstract Document getNextPager(Page page, WebDriver webDriver);
 
+
+    public abstract Document getNextPager(String url, WebDriver webDriver);
+
     /**
      * 找到下一页文本的 点击后 翻页
      *

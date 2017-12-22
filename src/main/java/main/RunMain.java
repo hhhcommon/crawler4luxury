@@ -5,6 +5,7 @@ import common.DbUtil;
 import compone.Component;
 import crawler.*;
 import factory.CrawlerComponent;
+import org.jcp.xml.dsig.internal.dom.DOMKeyInfo;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,7 +22,10 @@ public class RunMain {
         DbUtil.init();
         Component component = CrawlerComponent.create("《《《《【luxury job start】》》》》");
         List<BaseCrawler> crawlerList = new ArrayList<>();
-        crawlerList.add(new YslCrawler(1));
+        crawlerList.add(new DolcegabbanaCrawler4CH(1));
+        crawlerList.add(new DolcegabbanaCrawler4GB(1));
+        crawlerList.add(new DolcegabbanaCrawler4Fr(1));
+        crawlerList.add(new DolcegabbanaCrawler4Hk(1));
         component.AddJob(crawlerList)
                 .run();
     }
