@@ -11,6 +11,8 @@ import org.openqa.selenium.chrome.ChromeDriver;
 import us.codecraft.webmagic.Page;
 import us.codecraft.webmagic.selector.Html;
 
+import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -87,6 +89,38 @@ public class WebDriverComponent extends DriverComponent {
         } finally {
             while (true) {
                 try {
+                    //休眠1秒 防止 没加载出来就退出了
+                    Thread.sleep(1000);
+                    //判断是否翻到底了
+                    if (SeleniumUtils.checkIsFlipPages(webDriver)) {
+                        break;
+                    }
+                    //向下翻页
+                    SeleniumUtils.rollDown(webDriver);
+                    Thread.sleep(3000);
+                } catch (InterruptedException e) {
+                    break;
+                }
+            }
+            WebElement webElement = webDriver.findElement(By.xpath("/html"));
+            html = new Html(webElement.getAttribute("outerHTML"));
+        }
+        return html.getDocument();
+    }
+
+    @Override
+    public Document getNextPager(String url, WebDriver webDriver, List<String> text) {
+        Html html;
+        try {
+            webDriver.get(url);
+        } catch (Exception e) {
+            throw new IllegalArgumentException("getNextPager发生错误了!" + e.toString());
+        } finally {
+            while (true) {
+                try {
+                    if (!Objects.isNull(text) && text.size() > 0) {
+                        SeleniumUtils.click(webDriver, text);
+                    }
                     //休眠1秒 防止 没加载出来就退出了
                     Thread.sleep(1000);
                     //判断是否翻到底了

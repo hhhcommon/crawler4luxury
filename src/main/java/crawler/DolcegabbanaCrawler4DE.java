@@ -2,6 +2,7 @@ package crawler;
 
 import base.BaseCrawler;
 import com.google.common.base.Joiner;
+import common.DbUtil;
 import common.JsonParseUtil;
 import core.model.Product;
 import io.netty.util.internal.ObjectUtil;
@@ -14,11 +15,9 @@ import us.codecraft.webmagic.Page;
 import us.codecraft.webmagic.Site;
 import us.codecraft.webmagic.Spider;
 import us.codecraft.webmagic.downloader.HttpClientDownloader;
-import us.codecraft.webmagic.monitor.SpiderMonitor;
 import us.codecraft.webmagic.proxy.Proxy;
 import us.codecraft.webmagic.proxy.SimpleProxyProvider;
 
-import javax.management.JMException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,21 +26,21 @@ import java.util.List;
  * @Date: 2017/12/7.17:23
  * @Desc: DolcegabbanaCrawler4Hk
  */
-public class DolcegabbanaCrawler4Fr extends BaseCrawler {
+public class DolcegabbanaCrawler4DE extends BaseCrawler {
     /**
      * urls
      */
-    protected  static List<String> urls = new ArrayList<>();
+    protected static List<String> urls = new ArrayList<>();
 
-    public DolcegabbanaCrawler4Fr(int threadDept) {
+    public DolcegabbanaCrawler4DE(int threadDept) {
         super(threadDept);
     }
 
 
     public static void main(String[] args) {
 
-
-        new DolcegabbanaCrawler4Fr(1).run();
+        DbUtil.init();
+        new DolcegabbanaCrawler4DE(1).run();
     }
 
     @Override
@@ -51,7 +50,7 @@ public class DolcegabbanaCrawler4Fr extends BaseCrawler {
         httpClientDownloader.setProxyProvider(SimpleProxyProvider.from(new Proxy("127.0.0.1", 1080, "", "")));
         urls.add("https://store.dolcegabbana.com/zh/");
 //        urls.add("https://us.dolcegabbana.com/fr/femme/nouveautes/robe-bustier-en-tulle-rose-F68A5TFLEAAF0372.html?cgid=newin-women#HP_BAN=BAN2_171205_NEWIN_W&start=1");
-        spider = Spider.create(new DolcegabbanaCrawler4Fr(threadDept))
+        spider = Spider.create(new DolcegabbanaCrawler4DE(threadDept))
                 .addUrl((String[]) urls.toArray(new String[urls.size()]))
                 .addPipeline(new CrawlerPipeline())
                 .thread(threadDept);
@@ -144,7 +143,7 @@ public class DolcegabbanaCrawler4Fr extends BaseCrawler {
     public Site getSite() {
         Site site = Site.me()
                 .setDomain("us.dolcegabbana.com")
-                .addCookie("preferredCountry", "FR")
+                .addCookie("preferredCountry", "DE")
                 .addHeader("Accept-Language", "zh-CN,zh;q=0.8")
                 .setUserAgent("Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.9 Safari/537.36")
                 .setSleepTime(3000);

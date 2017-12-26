@@ -59,10 +59,10 @@ public class DiorCrawler extends BaseCrawler {
     @Override
     public void run() {
         logger.info("============ DiorCrawler Crawler start=============");
-        urls.add("https://www.dior.cn/home/zh_cn");
-//        urls.add("https://www.dior.com/home/de_de");
-//        urls.add("https://www.dior.com/home/en_gb");
-//        urls.add("https://www.dior.com/home/zh_hk");
+//        urls.add("https://www.dior.cn/home/zh_cn");
+        urls.add("https://www.dior.com/home/de_de");
+        urls.add("https://www.dior.com/home/en_gb");
+        urls.add("https://www.dior.com/home/zh_hk");
         spider = Spider.create(new DiorCrawler(threadDept))
                 .addUrl((String[]) urls.toArray(new String[urls.size()]))
                 .addPipeline(new CrawlerPipeline())

@@ -31,22 +31,18 @@ public class LVCrawler extends BaseCrawler {
 
     public LVCrawler(int threadDept) {
         super(threadDept);
-        //初始化的时候初始化 webdriver
-        driverComponent = new WebDriverComponent();
-        //创建一个driver 超时时间设置为3s
-        webDriver = driverComponent.create(3);
     }
 
     public static void main(String[] args) {
-        new LVCrawler(5).run();
+        new LVCrawler(1).run();
     }
 
     @Override
     public void run() {
         logger.info(">>>>LVCrawler start<<<<");
-        urls.add("http://www.louisvuitton.cn/zhs-cn/homepage");
         urls.add("http://hk.louisvuitton.com/eng-hk/homepage");
-        urls.add("http://fr.louisvuitton.com/fra-fr/homepage");
+        urls.add("http://www.louisvuitton.cn/zhs-cn/homepage");
+        urls.add("http://fr.louisvuitton.com/deu-de/homepage");
         urls.add("http://uk.louisvuitton.com/eng-gb/homepage");
         spider = Spider.create(new LVCrawler(threadDept))
                 .addUrl((String[]) urls.toArray(new String[urls.size()]))
@@ -57,11 +53,13 @@ public class LVCrawler extends BaseCrawler {
         } catch (JMException e) {
             e.printStackTrace();
         }
-        spider.start();
+        spider.runAsync();
     }
 
     @Override
     public void process(Page page) {
+        init();
+        logger.info("page url>" + page.getUrl().toString());
         Document document = page.getHtml().getDocument();
         if (urls.contains(page.getUrl().toString())) {
             logger.info("LVCrawler page is starting>>>" + page.getUrl().toString());
@@ -70,26 +68,31 @@ public class LVCrawler extends BaseCrawler {
             for (Element element : elements) {
                 String link = element.getElementsByTag("a").attr("href").trim();
                 if (!Strings.isBlank(link)) {
-                    navList.add(link);
-                    page.addTargetRequest(link);
+                    if (link.contains("women") || link.contains("men")) {
+                        navList.add(link);
+                        page.addTargetRequest(link);
+                    }
+
                 }
             }
         }
-        // navsList
+        // 获取详情页
         if (navList.contains(page.getUrl().toString())) {
             logger.info("nav page is starting>>>" + page.getUrl().toString());
-            Document document1 = null;
+            Document doc = null;
             try {
-                document1 = driverComponent.getNextPager(page, webDriver);
+                doc = driverComponent.getNextPager(page, webDriver);
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            Elements elements = document1.getElementsByClass("product-item tagClick tagClick");
+            Elements elements = doc.getElementsByClass("product-item tagClick tagClick");
             for (Element element : elements) {
                 String link = element.attr("href");
                 if (!Strings.isBlank(link)) {
-                    page.addTargetRequest("www.louisvuitton.cn" + link);
-                    detailList.add("www.louisvuitton.cn" + link);
+                    link = "http://www.louisvuitton.cn" + link;
+                    logger.info("加入到采集队列>>>>" + link);
+                    page.addTargetRequest(link);
+                    detailList.add(link);
                 }
             }
         }
@@ -100,7 +103,11 @@ public class LVCrawler extends BaseCrawler {
             String pname = document.getElementsByClass("productName title").text();
             String ref = document.select("div[class=sku reading-and-link-text]").text();
             String prize = document.select("td[class=priceValue price-sheet]").text();
-            String desc = document.select("div[class=productDescription description-push-text onlyML ppTextDescription]").first().text();
+            String desc = null;
+            try {
+                desc = document.select("div[class=productDescription description-push-text onlyML ppTextDescription]").first().text();
+            } catch (Exception e) {
+            }
             String classification = document.select("meta[name=page_name]").text();
             List<String> imgLs = new ArrayList<>();
             Elements elements = document.select("ul[class=bigs]").first().getElementsByTag("li");
@@ -125,7 +132,7 @@ public class LVCrawler extends BaseCrawler {
                 p.setHkPrice(prize);
                 p.setLanguage("eng-hk");
             }
-            if (page.getUrl().toString().contains("fra-fr")) {
+            if (page.getUrl().toString().contains("deu-de")) {
                 p.setEurPrice(prize);
                 p.setLanguage("fra-fr");
             }

@@ -2,6 +2,7 @@ package crawler;
 
 import base.BaseCrawler;
 import com.google.common.base.Joiner;
+import common.DbUtil;
 import common.JsonParseUtil;
 import core.model.Product;
 import io.netty.util.internal.ObjectUtil;
@@ -32,29 +33,26 @@ public class DolcegabbanaCrawler4CH extends BaseCrawler {
      * urls
      */
     protected static List<String> urls = new ArrayList<>();
+
     public DolcegabbanaCrawler4CH(int threadDept) {
         super(threadDept);
     }
 
 
     public static void main(String[] args) {
-
-
+        DbUtil.init();
         new DolcegabbanaCrawler4CH(1).run();
     }
 
     @Override
     public void run() {
         logger.info("============ DolcegabbanaCrawler4Hk Crawler start=============");
-        HttpClientDownloader httpClientDownloader = new HttpClientDownloader();
-        httpClientDownloader.setProxyProvider(SimpleProxyProvider.from(new Proxy("127.0.0.1", 1080, "", "")));
         urls.add("https://store.dolcegabbana.com/zh/");
 //        urls.add("https://us.dolcegabbana.com/fr/femme/nouveautes/robe-bustier-en-tulle-rose-F68A5TFLEAAF0372.html?cgid=newin-women#HP_BAN=BAN2_171205_NEWIN_W&start=1");
         spider = Spider.create(new DolcegabbanaCrawler4CH(threadDept))
                 .addUrl((String[]) urls.toArray(new String[urls.size()]))
                 .addPipeline(new CrawlerPipeline())
                 .thread(threadDept);
-        spider.setDownloader(httpClientDownloader);
         try {
             SpiderMonitor.instance().register(spider);
         } catch (JMException e) {

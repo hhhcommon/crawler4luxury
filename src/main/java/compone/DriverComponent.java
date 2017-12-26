@@ -4,6 +4,7 @@ import org.jsoup.nodes.Document;
 import org.openqa.selenium.WebDriver;
 import us.codecraft.webmagic.Page;
 
+import java.util.List;
 import java.util.logging.Logger;
 
 /**
@@ -17,7 +18,7 @@ public abstract class DriverComponent {
     /**
      * webDriver的实例
      */
-    protected WebDriver webDriver;
+    public WebDriver webDriver;
 
     /**
      * 初始化 chrome 位置信息
@@ -45,7 +46,11 @@ public abstract class DriverComponent {
      */
     public abstract Document getNextPager(Page page, WebDriver webDriver);
 
-
+    /**
+     * 获取下一页
+     *
+     * @return Document
+     */
     public abstract Document getNextPager(String url, WebDriver webDriver);
 
     /**
@@ -56,4 +61,7 @@ public abstract class DriverComponent {
      * @return Document
      */
     public abstract Document getNextPager(Page page, WebDriver webDriver, String ClickText);
+
+
+    public abstract Document getNextPager(String url, WebDriver webDriver, List<String> text);
 }

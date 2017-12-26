@@ -2,6 +2,7 @@ package crawler;
 
 import base.BaseCrawler;
 import com.google.common.base.Joiner;
+import common.DbUtil;
 import common.JsonParseUtil;
 import core.model.Product;
 import io.netty.util.internal.ObjectUtil;
@@ -40,7 +41,7 @@ public class DolcegabbanaCrawler4GB extends BaseCrawler {
 
     public static void main(String[] args) {
 
-
+        DbUtil.init();
         new DolcegabbanaCrawler4GB(1).run();
     }
 

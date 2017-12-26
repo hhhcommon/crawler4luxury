@@ -22,10 +22,8 @@ public class RunMain {
         DbUtil.init();
         Component component = CrawlerComponent.create("《《《《【luxury job start】》》》》");
         List<BaseCrawler> crawlerList = new ArrayList<>();
-        crawlerList.add(new DolcegabbanaCrawler4CH(1));
-        crawlerList.add(new DolcegabbanaCrawler4GB(1));
-        crawlerList.add(new DolcegabbanaCrawler4Fr(1));
-        crawlerList.add(new DolcegabbanaCrawler4Hk(1));
+//        crawlerList.add(new LVCrawler(1));
+        crawlerList.add(new GucciCrawler(1));
         component.AddJob(crawlerList)
                 .run();
     }

@@ -44,9 +44,9 @@ public abstract class BaseCrawler implements Runnable, PageProcessor {
 
     protected Site site;
 
-    protected WebDriver webDriver;
+    public WebDriver webDriver;
 
-    protected DriverComponent driverComponent;
+    public DriverComponent driverComponent;
 
     public Spider getSpider() {
         return spider;

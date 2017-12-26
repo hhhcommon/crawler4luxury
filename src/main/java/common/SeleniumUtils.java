@@ -5,6 +5,9 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+
+import java.util.List;
+import java.util.Objects;
 import java.util.logging.Logger;
 
 /**
@@ -63,6 +66,22 @@ public class SeleniumUtils {
         ((JavascriptExecutor) webDriver).executeScript("window.scrollTo(0, document.body.scrollHeight)");
     }
 
+
+    public static void click(WebDriver driver, List<String> clickText) {
+        WebElement element = null;
+        for (String list : clickText) {
+            try {
+                element = driver.findElement(By.linkText(list));
+
+            } catch (Exception e) {
+                logger.info("该页面无【" + list + "】关键词>>>>");
+                continue;
+            }
+        }
+        if (!Objects.isNull(element)) {
+            element.click();
+        }
+    }
 
     public static void click(WebDriver driver, String clickText) {
         try {
