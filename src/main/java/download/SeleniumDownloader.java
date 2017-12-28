@@ -1,7 +1,7 @@
 package download;
 
-import compone.DriverComponent;
-import factory.WebDriverComponent;
+import absCompone.DriverComponent;
+import componentImpl.WebDriverComponent;
 import org.jsoup.nodes.Document;
 import org.openqa.selenium.WebDriver;
 import us.codecraft.webmagic.Page;
@@ -26,19 +26,31 @@ public class SeleniumDownloader implements Downloader {
 
     private List<String> text;
 
+    private boolean isNotOnlyGetDoc = true;
+
     public SeleniumDownloader(WebDriver webDriver, DriverComponent driverComponent, List<String> text) {
         this.webDriver = webDriver;
         this.driverComponent = driverComponent;
         this.text = text;
     }
 
+    public SeleniumDownloader(WebDriver webDriver, DriverComponent driverComponent, Boolean isNotOnlyGetDoc) {
+        this.webDriver = webDriver;
+        this.driverComponent = driverComponent;
+        this.isNotOnlyGetDoc = isNotOnlyGetDoc;
+    }
 
     @Override
     public Page download(Request request, Task task) {
 
         Page page = null;
+        Document doc;
         try {
-            Document doc = driverComponent.getNextPager(request.getUrl().toString(), webDriver, text);
+            if (isNotOnlyGetDoc) {
+                doc = driverComponent.getNextPager(request.getUrl().toString(), webDriver, text);
+            } else {
+                doc = driverComponent.getPage(request.getUrl().toString(), webDriver);
+            }
             page = new Page();
             page.setRawText(doc.outerHtml());
             page.setHtml(new Html(doc.outerHtml(), request.getUrl()));
@@ -55,18 +67,4 @@ public class SeleniumDownloader implements Downloader {
 
     }
 
-    /**
-     * 初始化
-     */
-    public void init() {
-        //初始化的时候初始化 webdriver
-        if (driverComponent == null) {
-
-            driverComponent = new WebDriverComponent();
-        }
-        if (webDriver == null) {
-            //创建一个driver 超时时间设置为3s
-            webDriver = driverComponent.create(3);
-        }
-    }
 }

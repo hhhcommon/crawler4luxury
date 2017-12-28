@@ -5,6 +5,8 @@ import com.google.common.base.Joiner;
 import common.DbUtil;
 import common.JsonParseUtil;
 import core.model.Product;
+import download.MseleniumDownloader;
+import download.SeleniumDownloader;
 import io.netty.util.internal.ObjectUtil;
 import org.apache.logging.log4j.util.Strings;
 import org.jsoup.nodes.Document;
@@ -14,9 +16,6 @@ import pipeline.CrawlerPipeline;
 import us.codecraft.webmagic.Page;
 import us.codecraft.webmagic.Site;
 import us.codecraft.webmagic.Spider;
-import us.codecraft.webmagic.downloader.HttpClientDownloader;
-import us.codecraft.webmagic.proxy.Proxy;
-import us.codecraft.webmagic.proxy.SimpleProxyProvider;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -45,16 +44,15 @@ public class DolcegabbanaCrawler4DE extends BaseCrawler {
 
     @Override
     public void run() {
-        logger.info("============ DolcegabbanaCrawler4Hk Crawler start=============");
-        HttpClientDownloader httpClientDownloader = new HttpClientDownloader();
-        httpClientDownloader.setProxyProvider(SimpleProxyProvider.from(new Proxy("127.0.0.1", 1080, "", "")));
+        init();
+        logger.info("============ DolcegabbanaCrawler4DE Crawler start=============");
         urls.add("https://store.dolcegabbana.com/zh/");
 //        urls.add("https://us.dolcegabbana.com/fr/femme/nouveautes/robe-bustier-en-tulle-rose-F68A5TFLEAAF0372.html?cgid=newin-women#HP_BAN=BAN2_171205_NEWIN_W&start=1");
         spider = Spider.create(new DolcegabbanaCrawler4DE(threadDept))
                 .addUrl((String[]) urls.toArray(new String[urls.size()]))
                 .addPipeline(new CrawlerPipeline())
                 .thread(threadDept);
-        spider.setDownloader(httpClientDownloader);
+        spider.setDownloader(new SeleniumDownloader(webDriver, driverComponent, false));
         spider.start();
     }
 
@@ -68,6 +66,7 @@ public class DolcegabbanaCrawler4DE extends BaseCrawler {
             for (Element element : elementNavs) {
                 String link = element.getElementsByTag("a").attr("href");
                 if (!Strings.isBlank(link)) {
+                    logger.info("加入到采集队列   " + link);
                     navList.add(link);
                     page.addTargetRequest(link);
                 }
@@ -82,7 +81,7 @@ public class DolcegabbanaCrawler4DE extends BaseCrawler {
                 if (!Strings.isBlank(link)) {
                     detailList.add(link);
                     page.addTargetRequest(link);
-                    logger.info("detail url is added>>>>" + link);
+                    logger.info("加入到采集队列   " + link);
                 }
             }
         }
@@ -145,8 +144,7 @@ public class DolcegabbanaCrawler4DE extends BaseCrawler {
                 .setDomain("us.dolcegabbana.com")
                 .addCookie("preferredCountry", "DE")
                 .addHeader("Accept-Language", "zh-CN,zh;q=0.8")
-                .setUserAgent("Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.9 Safari/537.36")
-                .setSleepTime(3000);
+                .setUserAgent("Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.9 Safari/537.36");
         return site;
     }
 }

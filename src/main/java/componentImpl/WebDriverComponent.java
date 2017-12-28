@@ -1,6 +1,6 @@
-package factory;
+package componentImpl;
 
-import compone.DriverComponent;
+import absCompone.DriverComponent;
 import common.SeleniumUtils;
 import org.apache.logging.log4j.util.Strings;
 import org.jsoup.nodes.Document;
@@ -101,6 +101,32 @@ public class WebDriverComponent extends DriverComponent {
                 } catch (InterruptedException e) {
                     break;
                 }
+            }
+            WebElement webElement = webDriver.findElement(By.xpath("/html"));
+            html = new Html(webElement.getAttribute("outerHTML"));
+        }
+        return html.getDocument();
+    }
+
+    /**
+     * 获取一个doc
+     *
+     * @param url
+     * @param webDriver
+     * @return
+     */
+    @Override
+    public Document getPage(String url, WebDriver webDriver) {
+        Html html;
+        try {
+            webDriver.get(url);
+        } catch (Exception e) {
+            throw new IllegalArgumentException("getNextPager发生错误了!" + e.toString());
+        } finally {
+            try {
+                //休眠1秒 防止 没加载出来就退出了
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
             }
             WebElement webElement = webDriver.findElement(By.xpath("/html"));
             html = new Html(webElement.getAttribute("outerHTML"));

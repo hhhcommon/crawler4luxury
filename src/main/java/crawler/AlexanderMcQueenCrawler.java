@@ -6,7 +6,7 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
 import common.HttpRequestUtil;
 import common.RegexUtil;
-import factory.WebDriverComponent;
+import componentImpl.WebDriverComponent;
 import model.Alexandermcqueen;
 import model.ColorAlexander;
 import core.model.Product;

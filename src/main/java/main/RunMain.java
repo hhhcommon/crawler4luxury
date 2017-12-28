@@ -2,10 +2,9 @@ package main;
 
 import base.BaseCrawler;
 import common.DbUtil;
-import compone.Component;
+import absCompone.Component;
 import crawler.*;
-import factory.CrawlerComponent;
-import org.jcp.xml.dsig.internal.dom.DOMKeyInfo;
+import componentImpl.CrawlerComponent;
 
 import java.util.ArrayList;
 import java.util.List;

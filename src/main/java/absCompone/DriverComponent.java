@@ -1,4 +1,4 @@
-package compone;
+package absCompone;
 
 import org.jsoup.nodes.Document;
 import org.openqa.selenium.WebDriver;
@@ -52,6 +52,15 @@ public abstract class DriverComponent {
      * @return Document
      */
     public abstract Document getNextPager(String url, WebDriver webDriver);
+
+    /**
+     * 获取一个doc
+     *
+     * @param url
+     * @param webDriver
+     * @return
+     */
+    public abstract Document getPage(String url, WebDriver webDriver);
 
     /**
      * 找到下一页文本的 点击后 翻页

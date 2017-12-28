@@ -5,7 +5,7 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
 import common.HttpRequestUtil;
 import core.model.Product;
-import factory.WebDriverComponent;
+import componentImpl.WebDriverComponent;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;

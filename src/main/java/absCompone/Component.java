@@ -1,4 +1,4 @@
-package compone;
+package absCompone;
 
 import base.BaseCrawler;
 

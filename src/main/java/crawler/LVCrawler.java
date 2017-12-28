@@ -3,7 +3,6 @@ package crawler;
 import base.BaseCrawler;
 import com.google.common.base.Joiner;
 import core.model.Product;
-import factory.WebDriverComponent;
 import org.apache.logging.log4j.util.Strings;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;

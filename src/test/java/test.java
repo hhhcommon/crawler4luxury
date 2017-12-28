@@ -1,8 +1,8 @@
 
 import crawler.SinaCrawler;
 import crawler.AlexanderMcQueenCrawler;
-import compone.Component;
-import factory.CrawlerComponent;
+import absCompone.Component;
+import componentImpl.CrawlerComponent;
 
 /**
  * @Author: yang 【youtulu.cn】

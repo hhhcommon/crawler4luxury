@@ -1,7 +1,7 @@
 package base;
 
-import compone.DriverComponent;
-import factory.WebDriverComponent;
+import absCompone.DriverComponent;
+import componentImpl.WebDriverComponent;
 import org.openqa.selenium.WebDriver;
 import us.codecraft.webmagic.Site;
 import us.codecraft.webmagic.Spider;

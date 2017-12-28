@@ -1,6 +1,6 @@
-package factory;
+package componentImpl;
 
-import compone.Component;
+import absCompone.Component;
 import base.BaseCrawler;
 import io.netty.util.internal.ObjectUtil;
 
