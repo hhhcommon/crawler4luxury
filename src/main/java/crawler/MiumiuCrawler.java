@@ -2,6 +2,7 @@ package crawler;
 
 import base.BaseCrawler;
 import com.google.common.base.Joiner;
+import common.DbUtil;
 import common.RegexUtil;
 import core.model.Product;
 import componentImpl.WebDriverComponent;
@@ -23,7 +24,7 @@ import java.util.Objects;
 /**
  * @Author: yang
  * @Date: 2017/12/13.11:23
- * @Desc: to MiumiuCrawler
+ * @Desc: to MiumiuCrawler   需要用sem 去爬取 未完成
  */
 public class MiumiuCrawler extends BaseCrawler {
     /**
@@ -33,10 +34,6 @@ public class MiumiuCrawler extends BaseCrawler {
 
     public MiumiuCrawler(int threadDept) {
         super(threadDept);
-        //初始化的时候初始化 webdriver
-        driverComponent = new WebDriverComponent();
-        //创建一个driver 超时时间设置为3s
-        webDriver = driverComponent.create(3);
     }
 
     @Override
@@ -60,6 +57,7 @@ public class MiumiuCrawler extends BaseCrawler {
 
     @Override
     public void process(Page page) {
+
         Document document = page.getHtml().getDocument();
         if (urls.contains(page.getUrl().toString())) {
             Elements elementsNav = document.getElementsByClass("lv0");
@@ -68,6 +66,7 @@ public class MiumiuCrawler extends BaseCrawler {
                 for (Element element1 : elements) {
                     String link = element1.getElementsByTag("a").attr("href");
                     if (!Strings.isBlank(link)) {
+                        logger.info("加入到采集队列" + link);
                         navList.add(link);
                         page.addTargetRequest(link);
                     }
@@ -80,11 +79,13 @@ public class MiumiuCrawler extends BaseCrawler {
          * navs
          */
         if (navList.contains(page.getUrl().toString())) {
+            init();
             Document document1 = driverComponent.getNextPager(page, webDriver, "查看更多");
             Elements elements = document1.select("div[class=nextItem discount col-lg-3 col-md-3 col-sm-4 col-xs-6]");
             for (Element element : elements) {
                 String detailLink = element.getElementsByTag("a").attr("href");
                 if (!Strings.isBlank(detailLink)) {
+                    logger.info("加入到采集队列" + detailLink);
                     page.addTargetRequest(detailLink);
                     detailList.add(detailLink);
                 }
@@ -152,6 +153,7 @@ public class MiumiuCrawler extends BaseCrawler {
     }
 
     public static void main(String[] args) {
+        DbUtil.init();
         new MiumiuCrawler(1).run();
     }
 }

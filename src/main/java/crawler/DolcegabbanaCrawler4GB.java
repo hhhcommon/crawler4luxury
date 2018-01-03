@@ -5,6 +5,7 @@ import com.google.common.base.Joiner;
 import common.DbUtil;
 import common.JsonParseUtil;
 import core.model.Product;
+import download.SeleniumDownloader;
 import io.netty.util.internal.ObjectUtil;
 import org.apache.logging.log4j.util.Strings;
 import org.jsoup.nodes.Document;
@@ -48,12 +49,14 @@ public class DolcegabbanaCrawler4GB extends BaseCrawler {
     @Override
     public void run() {
         logger.info("============ DolcegabbanaCrawler4Hk Crawler start=============");
+        init();
         urls.add("https://store.dolcegabbana.com/zh/");
 //        urls.add("https://us.dolcegabbana.com/fr/femme/nouveautes/robe-bustier-en-tulle-rose-F68A5TFLEAAF0372.html?cgid=newin-women#HP_BAN=BAN2_171205_NEWIN_W&start=1");
         spider = Spider.create(new DolcegabbanaCrawler4GB(threadDept))
                 .addUrl((String[]) urls.toArray(new String[urls.size()]))
                 .addPipeline(new CrawlerPipeline())
                 .thread(threadDept);
+        spider.setDownloader(new SeleniumDownloader(webDriver, driverComponent, false));
         spider.start();
     }
 
@@ -90,18 +93,27 @@ public class DolcegabbanaCrawler4GB extends BaseCrawler {
             logger.info("deal detail page is start");
             Document document = page.getHtml().getDocument();
             String size = "";
-            String ref = document.getElementsByClass("b-product_master_id").text().split("：")[1].trim();
-            String desc = document.getElementsByClass("b-product_long_description").text();
-            String pName = document.getElementsByClass("b-product_name").text();
-            String prize = document.getElementsByClass("b-product_price").text();
-            String color = document.getElementsByClass("js_color-description").text();
+            String ref = null;
+            String desc = null;
+            String pName = null;
+            String prize = null;
+            String color = null;
+            try {
+                ref = document.getElementsByClass("b-product_master_id").first().text().split("：")[1].trim();
+                desc = document.getElementsByClass("b-product_long_description").first().text();
+                pName = document.getElementsByClass("b-product_name").first().text();
+                prize = document.getElementsByClass("b-product_price").first().text();
+                color = document.getElementsByClass("js_color-description").first().text();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
             Elements classification = document.getElementsByClass("b-breadcrumb-link js-breadcrumb_refinement-link");
             List<String> claList = new ArrayList<>();
             for (Element e : classification) {
                 String cla = e.text();
                 claList.add(cla);
             }
-            Elements sizeEl = document.getElementsByClass("b-swatches_size-item emptyswatch");
+            Elements sizeEl = document.select("div[class=b-variation-dropdown] li[class=b-swatches_size-item emptyswatch]");
             ObjectUtil.checkNotNull(sizeEl, "sizeEl is null");
             List<String> sizeList = new ArrayList<>();
             for (Element element : sizeEl) {

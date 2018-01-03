@@ -90,11 +90,20 @@ public class DolcegabbanaCrawler4DE extends BaseCrawler {
             logger.info("deal detail page is start");
             Document document = page.getHtml().getDocument();
             String size = "";
-            String ref = document.getElementsByClass("b-product_master_id").text().split("：")[1].trim();
-            String desc = document.getElementsByClass("b-product_long_description").text();
-            String pName = document.getElementsByClass("b-product_name").text();
-            String prize = document.getElementsByClass("b-product_price").text();
-            String color = document.getElementsByClass("js_color-description").text();
+            String ref = null;
+            String desc = null;
+            String pName = null;
+            String prize = null;
+            String color = null;
+            try {
+                ref = document.getElementsByClass("b-product_master_id").first().text().split("：")[1].trim();
+                desc = document.getElementsByClass("b-product_long_description").first().text();
+                pName = document.getElementsByClass("b-product_name").first().text();
+                prize = document.getElementsByClass("b-product_price").first().text();
+                color = document.getElementsByClass("js_color-description").first().text();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
             Elements classification = document.getElementsByClass("b-breadcrumb-link js-breadcrumb_refinement-link");
             List<String> claList = new ArrayList<>();
             for (Element e : classification) {

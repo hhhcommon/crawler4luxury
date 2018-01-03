@@ -2,6 +2,7 @@ package crawler;
 
 import base.BaseCrawler;
 import com.google.common.base.Joiner;
+import common.DbUtil;
 import common.RegexUtil;
 import core.model.Product;
 import componentImpl.WebDriverComponent;
@@ -34,10 +35,6 @@ public class JimmyChooCrawler extends BaseCrawler {
 
     public JimmyChooCrawler(int threadDept) {
         super(threadDept);
-        //初始化的时候初始化 webdriver
-        driverComponent = new WebDriverComponent();
-        //创建一个driver 超时时间设置为3s
-        webDriver = driverComponent.create(3);
     }
 
     @Override
@@ -70,6 +67,7 @@ public class JimmyChooCrawler extends BaseCrawler {
                     if (!Strings.isBlank(navLink)) {
                         if (navLink.matches(reg)) {
                             page.addTargetRequest(navLink);
+                            logger.info("加入到采集队列  " + navLink);
                             navList.add(navLink);
                         }
 
@@ -79,39 +77,59 @@ public class JimmyChooCrawler extends BaseCrawler {
         }
         //获取详情页面
         if (navList.contains(page.getUrl().toString())) {
+            init();
             Document document1 = driverComponent.getNextPager(page, webDriver);
             Elements elements = document1.getElementsByClass("js-producttile_link");
             for (Element element : elements) {
                 String link = element.attr("href");
                 if (!Strings.isBlank(link)) {
-                    page.addTargetRequest("http://row.jimmychoo.com" + link);
-                    detailList.add("http://row.jimmychoo.com" + link);
+                    link = "http://row.jimmychoo.com" + link;
+                    page.addTargetRequest(link);
+                    logger.info("加入到采集队列  " + link);
+                    detailList.add(link);
                 }
             }
         }
         //解析详情页面
         if (detailList.contains(page.getUrl().toString())) {
-            driverComponent.destoty();
+            document = driverComponent.getPage(page.getUrl().toString(), webDriver);
             String pname = document.select("h1.product-name").text();
             String prize = document.getElementsByClass("text-uppercase").attr("content");
             String desc = document.getElementById("tab2").text();
             String ref = RegexUtil.getDataByRegex("\"sku\":\"(.*?)\",\"sku_code\":", page.getHtml().toString());
             String Classification = document.select("span[itemprop=name]").text();
             List<String> colorLs = new ArrayList<>();
-            Elements elements = document.select("ul[class=js-menu-swatches Color js-menu-color menu-horz-block clearfix]").first().getElementsByTag("li");
-            for (Element element : elements) {
-                String color = element.getElementsByTag("a").attr("title");
-                if (!Strings.isBlank(color)) {
-                    colorLs.add(color);
+            Elements elements = null;
+            try {
+                elements = document.select("ul[class=js-menu-swatches Color js-menu-color menu-horz-block clearfix]").first().getElementsByTag("li");
+            } catch (Exception e) {
+
+            }
+            try {
+                for (Element element : elements) {
+                    String color = element.getElementsByTag("a").attr("title");
+                    if (!Strings.isBlank(color)) {
+                        colorLs.add(color);
+                    }
                 }
+            } catch (Exception e) {
             }
             List<String> sizeLs = new ArrayList<>();
-            Elements sizeEl = document.select("ul[class=js-menu-swatches menu-horz-block clearfix size]").first().getElementsByTag("li");
-            for (Element element : sizeEl) {
-                String size = element.select("span[class=js-swatch-value]").text().split(" ")[0];
-                if (!Strings.isBlank(size)) {
-                    sizeLs.add(size);
+            Elements sizeEl = null;
+            try {
+                sizeEl = document.select("ul[class=js-menu-swatches menu-horz-block clearfix size]").first().getElementsByTag("li");
+            } catch (Exception e) {
+
+            }
+            try {
+                for (Element element : sizeEl) {
+                    String size = element.select("span[class=js-swatch-value]").text().split(" ")[0];
+                    if (!Strings.isBlank(size)) {
+                        sizeLs.add(size);
+                    }
                 }
+            } catch (Exception e) {
+
             }
             List<String> imgLs = new ArrayList<>();
             Elements imgEl = document.select("img[class=js-producttile_image js-product-image product-image]");
@@ -143,6 +161,7 @@ public class JimmyChooCrawler extends BaseCrawler {
     public Site getSite() {
         site = Site.me()
                 .setDomain("www.jimmychoo.com")
+                .addCookie("dwgeoip", "jchgb#en_GB#GB")
                 .setRetryTimes(3)
                 .setTimeOut(5000)
                 .setUserAgent("Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.9 Safari/537.36");
@@ -150,6 +169,7 @@ public class JimmyChooCrawler extends BaseCrawler {
     }
 
     public static void main(String[] args) {
+        DbUtil.init();
         new JimmyChooCrawler(1).run();
     }
 }

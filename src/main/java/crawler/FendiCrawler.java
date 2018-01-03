@@ -2,6 +2,7 @@ package crawler;
 
 import base.BaseCrawler;
 import com.google.common.base.Joiner;
+import common.DbUtil;
 import common.RegexUtil;
 import core.model.Product;
 import org.apache.logging.log4j.util.Strings;
@@ -21,7 +22,7 @@ import java.util.List;
 /**
  * @Author: yang
  * @Date: 2017/12/8.13:54
- * @Desc: FendiCrawler
+ * @Desc: FendiCrawler  芬迪 这个 只有英国 德国的有价格 其他的没有价格
  */
 public class FendiCrawler extends BaseCrawler {
     private String reg = "https://www.fendi.com/\\w{2}/.*?/p-.*?\\?from=search";
@@ -31,6 +32,7 @@ public class FendiCrawler extends BaseCrawler {
     }
 
     public static void main(String[] args) {
+        DbUtil.init();
         new FendiCrawler(1).run();
     }
 
@@ -39,6 +41,7 @@ public class FendiCrawler extends BaseCrawler {
         List<String> urls = new ArrayList<>();
         for (int i = 0; i <= 100; i++) {
             urls.add("https://www.fendi.com/gb/search-results?q=:relevance&page=" + i);
+            urls.add("https://www.fendi.com/de/search-results?q=:relevance&page=" + i);
         }
         spider = Spider.create(new FendiCrawler(threadDept))
                 .addUrl((String[]) urls.toArray(new String[urls.size()]))
@@ -66,11 +69,10 @@ public class FendiCrawler extends BaseCrawler {
                     imgList.add(img);
                 }
             }
-            String introduction = document.getElementsByClass("product-description").first().getElementsByClass("description").text();
+            String introduction = document.select("p[itemprop=description]").text();
             String color = RegexUtil.getDataByRegex("itemprop=\"url\"/><meta content=\"(.*?)\" itemprop=\"color\"/>",
                     page.getHtml().toString());
             String ref = document.getElementsByClass("product-description").first().getElementsByClass("code").text();
-            String language = "zh_CN";
             String price = document.getElementsByClass("price").first().text();
             String classification = document.getElementById("dropdown-main-category").getElementsByTag("meta").attr("content");
             Product p = new Product();
@@ -80,13 +82,20 @@ public class FendiCrawler extends BaseCrawler {
             p.setName(name);
             p.setClassification(classification);
             p.setUrl(page.getUrl().toString());
-            p.setLanguage(language);
+
             try {
                 p.setRef(ref.split(":")[1]);
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            p.setEnPrice(price);
+            if (page.getUrl().toString().contains("https://www.fendi.com/de")) {
+                p.setEurPrice(price);
+                p.setLanguage("de-de");
+            }
+            if (page.getUrl().toString().contains("https://www.fendi.com/gb")) {
+                p.setEnPrice(price);
+                p.setLanguage("gb");
+            }
             p.setIntroduction(introduction);
             page.putField("product", p);
         } else {

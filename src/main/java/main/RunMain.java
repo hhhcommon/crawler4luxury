@@ -22,7 +22,9 @@ public class RunMain {
         Component component = CrawlerComponent.create("《《《《【luxury job start】》》》》");
         List<BaseCrawler> crawlerList = new ArrayList<>();
 //        crawlerList.add(new LVCrawler(1));
-        crawlerList.add(new GucciCrawler(1));
+//        crawlerList.add(new GucciCrawler(1));
+        crawlerList.add(new DolcegabbanaCrawler4GB(1));
+        crawlerList.add(new DolcegabbanaCrawler4DE(1));
         component.AddJob(crawlerList)
                 .run();
     }

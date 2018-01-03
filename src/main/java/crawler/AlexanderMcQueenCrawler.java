@@ -4,6 +4,7 @@ import base.BaseCrawler;
 import com.alibaba.fastjson.JSON;
 import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
+import common.DbUtil;
 import common.HttpRequestUtil;
 import common.RegexUtil;
 import componentImpl.WebDriverComponent;
@@ -43,13 +44,10 @@ public class AlexanderMcQueenCrawler extends BaseCrawler {
 
     public AlexanderMcQueenCrawler(int threadDept) {
         super(threadDept);
-        //初始化的时候初始化 webdriver
-        driverComponent = new WebDriverComponent();
-        //创建一个driver 超时时间设置为3s
-        webDriver = driverComponent.create(3);
     }
 
     public static void main(String[] args) {
+        DbUtil.init();
         new AlexanderMcQueenCrawler(1).run();
     }
 
@@ -89,6 +87,7 @@ public class AlexanderMcQueenCrawler extends BaseCrawler {
         }
 
         if (navList.contains(page.getUrl().toString())) {
+            init();
             logger.info("process>>>>>>>>>>>" + page.getUrl());
             document = driverComponent.getNextPager(page, webDriver);
             //每页获取 每个详情页
@@ -231,8 +230,7 @@ public class AlexanderMcQueenCrawler extends BaseCrawler {
                 .setUserAgent("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_2) AppleWebKit/537.31 (KHTML, like Gecko) Chrome/26.0.1410.65 Safari/537.31")
                 .setCharset("utf-8")
                 .setTimeOut(5000)
-                .setRetryTimes(3)
-                .setSleepTime(1000);
+                .setRetryTimes(3);
         return site;
     }
 

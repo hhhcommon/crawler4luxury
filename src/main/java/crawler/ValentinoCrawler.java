@@ -3,6 +3,7 @@ package crawler;
 import base.BaseCrawler;
 import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
+import common.DbUtil;
 import common.HttpRequestUtil;
 import core.model.Product;
 import componentImpl.WebDriverComponent;
@@ -29,14 +30,10 @@ public class ValentinoCrawler extends BaseCrawler {
     /**
      * urls
      */
-    protected  static List<String> urls = new ArrayList<>();
+    protected static List<String> urls = new ArrayList<>();
 
     public ValentinoCrawler(int threadDept) {
         super(threadDept);
-        //初始化的时候初始化 webdriver
-        driverComponent = new WebDriverComponent();
-        //创建一个driver 超时时间设置为3s
-        webDriver = driverComponent.create(3);
     }
 
     @Override
@@ -58,15 +55,15 @@ public class ValentinoCrawler extends BaseCrawler {
 
     @Override
     public void process(Page page) {
+        init();
         logger.info("process start>>>>" + page.getUrl().toString());
         Document document = page.getHtml().getDocument();
         if (urls.contains(page.getUrl().toString())) {
             Elements elements = document.select("li[class=hasChildren categories menuItem] ul li");
-
             for (Element element : elements) {
                 String link = element.getElementsByTag("a").attr("href").trim();
-
                 if (!Strings.isNullOrEmpty(link)) {
+                    logger.info("加入到采集队列" + link);
                     navList.add(link);
                     page.addTargetRequest(link);
                 }
@@ -76,12 +73,12 @@ public class ValentinoCrawler extends BaseCrawler {
 
         if (navList.contains(page.getUrl().toString())) {
             logger.info("nav>>>>" + page.getUrl().toString());
-
             Document document1 = driverComponent.getNextPager(page, webDriver, "加载更多");
             Elements elements = document1.select("article[class=search-item   ]");
             for (Element element : elements) {
                 String detailLink = element.getElementsByTag("a").attr("href");
                 if (!Strings.isNullOrEmpty(detailLink)) {
+                    logger.info("加入到采集队列" + detailLink);
                     page.addTargetRequest(detailLink);
                     detailList.add(detailLink);
                 }
@@ -91,6 +88,7 @@ public class ValentinoCrawler extends BaseCrawler {
         }
 
         if (detailList.contains(page.getUrl().toString())) {
+
             driverComponent.destoty();
             logger.info("detail>>>" + page.getUrl().toString());
             String pname = null;
@@ -194,6 +192,7 @@ public class ValentinoCrawler extends BaseCrawler {
     }
 
     public static void main(String[] args) {
+        DbUtil.init();
         new ValentinoCrawler(1).run();
     }
 }
