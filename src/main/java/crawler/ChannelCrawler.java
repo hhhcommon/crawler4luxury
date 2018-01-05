@@ -25,6 +25,8 @@ import us.codecraft.webmagic.proxy.SimpleProxyProvider;
 import us.codecraft.webmagic.scheduler.RedisScheduler;
 
 import javax.management.JMException;
+import javax.swing.*;
+import javax.xml.stream.events.DTD;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -39,18 +41,7 @@ import java.util.regex.Pattern;
 public class ChannelCrawler extends BaseCrawler {
 
     private static String reg = "http://www.chanel.com/(.*?)/fashion/products/(.*?)/.*[A-Z]{1}\\d{5}[A-Z]{1}\\d{5}\\w{5}.*";
-    /**
-     * 存储 http://www.chanel.com/zh_CN/fashion/products/eyewear.html 这样的链接
-     */
-    private List<String> requestUrlDeep = new ArrayList<>();
-    /**
-     * 存储 http://www.chanel.com/zh_CN/fashion/products/ready-to-wear/g.cruise-2017-18.c.18C.html 这种类型的链接
-     */
-    private List<String> requestUrlContent = new ArrayList<>();
-    /**
-     * 存储 最终的内容链接
-     */
-    private List<String> requestUrlFinal = new ArrayList<>();
+    private List requestUrlFinal = new ArrayList();
 
     public ChannelCrawler(int dept) {
         super(dept);
@@ -67,14 +58,10 @@ public class ChannelCrawler extends BaseCrawler {
         /**
          * 配置代理
          */
-        HttpClientDownloader httpClientDownloader = new HttpClientDownloader();
-        httpClientDownloader.setProxyProvider(SimpleProxyProvider.from(new Proxy("127.0.0.1", 1080, "username", "password")));
         spider = Spider.create(new ChannelCrawler(threadDept))
                 .addUrl("http://www.chanel.com/zh_CN/fashion.html#products")
                 .addPipeline(new CrawlerPipeline())
-                .setScheduler(new RedisScheduler("127.0.0.1"))
                 .thread(threadDept);
-        spider.setDownloader(httpClientDownloader);
         try {
             SpiderMonitor.instance().register(spider);
         } catch (JMException e) {
@@ -87,35 +74,34 @@ public class ChannelCrawler extends BaseCrawler {
     public void process(Page page) {
         logger.info("process>>>>>>" + page.getUrl().toString());
         Document document = page.getHtml().getDocument();
-        List<String> requestUrl = new ArrayList<>();
         if (page.getUrl().regex("http://www.chanel.com/zh_CN/fashion.html#products").match()) {
             Elements requestEl = document.getElementsByClass("fs-navigation-secondary-menu__list fs-menu-product-lines").first().getElementsByTag("ul").first().getElementsByTag("li");
-            ObjectUtil.checkNotNull(requestEl, "requestEl");
-            requestUrl.clear();
-            for (Element element : requestEl) {
-                requestUrl.add("http://www.chanel.com" + element.getElementsByTag("a").attr("href"));
-                requestUrlDeep.add("http://www.chanel.com" + element.getElementsByTag("a").attr("href"));
+            if (Objects.nonNull(requestEl)) {
+                for (Element element : requestEl) {
+                    String link = "http://www.chanel.com" + element.getElementsByTag("a").attr("href");
+                    logger.info("爬虫获取到导航链接 " + link);
+                    navList.add(link);
+                }
+                page.addTargetRequests(navList);
             }
-            page.addTargetRequests(requestUrl);
         }
-
-        if (requestUrlDeep.contains(page.getUrl().toString())) {
+        if (navList.contains(page.getUrl().toString())) {
             try {
                 String url = "http://www.chanel.com" + document.select("div.center-collection").first().getElementsByTag("a").first().attr("href");
-                ObjectUtil.checkNotNull(url, "url");
-                requestUrlContent.add(url);
-                page.addTargetRequest(url);
+                if (!Strings.isBlank(url)) {
+                    logger.info("加入到采集队列 " + url);
+                    detailList.add(url);
+                    page.addTargetRequest(url);
+                }
             } catch (Exception e) {
-                logger.info("处理不需要点击2次的链接>>>>>>>");
-                //处理不需要2次点击的链接
                 //各种系列
                 Elements elements = document.getElementsByClass("no-select nav-item");
                 ObjectUtil.checkNotNull(elements, "不需要点击的链接 no-select nav-item ");
                 for (Element element : elements) {
                     String url = "http://www.chanel.com" + element.getElementsByTag("a").attr("href");
+                    logger.info("加入到采集队列 " + url);
                     page.addTargetRequest(url);
-                    //内容页的链接加到一个list 省去 正则去判断
-                    requestUrlContent.add(url);
+                    detailList.add(url);
                 }
             }
 
@@ -124,12 +110,13 @@ public class ChannelCrawler extends BaseCrawler {
         /*
          获取 每页的各个商品
          */
-        if (requestUrlContent.contains(page.getUrl().toString())) {
+        if (detailList.contains(page.getUrl().toString())) {
 
             Elements elements = document.select("a.product-link");
             ObjectUtil.checkNotNull(elements, "requestUrlContent elements");
             for (Element element : elements) {
                 String url = "http://www.chanel.com" + element.attr("href");
+                logger.info("加入到采集队列 " + url);
                 page.addTargetRequest(url);
                 requestUrlFinal.add(url);
             }
@@ -144,6 +131,7 @@ public class ChannelCrawler extends BaseCrawler {
             for (Element element : elements) {
                 img.add("http://www.chanel.com" + element.attr("data-src"));
             }
+
             try {
                 String json = RegexUtil.getDataByRegex(".\"detailsGridJsonUrl\": \"(.*?)\".", page.getHtml().toString());
                 if (!Objects.isNull(json)) {
@@ -151,30 +139,52 @@ public class ChannelCrawler extends BaseCrawler {
                     String html = HttpRequestUtil.sendGet(jsonUrl);
                     String jsonData = JsonParseUtil.getString(html, page.getUrl().toString().replaceAll("http://www.chanel.com", ""));
                     ChannelJson channelJsons = JSON.parseObject(jsonData, ChannelJson.class);
-
+                    String tag = channelJsons.getData().getCollectionLabel();
                     List<ChannelJson.DataBeanX.DetailsBean.InformationBean> list = channelJsons.getData().getDetails().getInformation();
+                    //高级成衣的附属商品标志
+                    String code = "";
+                    List<Product> productList = new ArrayList<>();
                     for (ChannelJson.DataBeanX.DetailsBean.InformationBean listData : list) {
                         for (ChannelJson.DataBeanX.DetailsBean.InformationBean.DatasBean l : listData.getDatas()) {
-                            Product product = new Product();
-                            product.setName(l.getTitle());
-                            product.setColor(l.getColor());
-                            product.setMaterial(l.getMaterial());
-                            product.setRef(l.getData().get(0).getRef());
-                            product.setLanguage(language);
-                            product.setUrl(page.getUrl().toString());
-                            //请求价格
-                            product.setPrice(getRefPrice("zh_CN", l));
-//                            product.setHkPrice(getRefPrice("en_HK", l));
-//                            product.setEnPrice(getRefPrice("en_GB", l));
-//                            product.setEurPrice(getRefPrice("fr_BE", l));
-                            //同一个系列的图片放到相同的图片
-                            product.setImg(Joiner.on("|").join(img));
-                            product.setClassification(listData.getTitle());
-                            product.setBrand("chanel");
-                            page.putField("product", product);
+                            if (listData.getTitle().contains("高级成衣")) {
+                                Product product = new Product();
+                                product.setName(l.getTitle());
+                                product.setColor(l.getColor());
+                                product.setMaterial(l.getMaterial());
+                                product.setRef(l.getData().get(0).getRef());
+                                code = l.getData().get(0).getRef();
+                                product.setLanguage(language);
+                                product.setUrl(page.getUrl().toString());
+                                product.setTags(tag);
+                                //请求价格
+                                product.setPrice(getRefPrice("zh_CN", l));
+                                //同一个系列的图片放到相同的图片
+                                product.setImg(Joiner.on("|").join(img));
+                                product.setClassification(listData.getTitle());
+                                product.setBrand("chanel");
+                                productList.add(product);
+                            } else {
+                                Product product = new Product();
+                                product.setName(l.getTitle());
+                                product.setColor(l.getColor());
+                                product.setMaterial(l.getMaterial());
+                                product.setRef(l.getData().get(0).getRef());
+                                product.setCode(code);
+                                product.setTags(tag);
+                                product.setLanguage(language);
+                                product.setUrl(page.getUrl().toString());
+                                //请求价格
+                                product.setPrice(getRefPrice("zh_CN", l));
+                                //同一个系列的图片放到相同的图片
+                                product.setImg(Joiner.on("|").join(img));
+                                product.setClassification(listData.getTitle());
+                                product.setBrand("chanel");
+                                productList.add(product);
+                            }
+
                         }
                     }
-                    return;
+                    page.putField("productList", productList);
                 } else {
                     String price = null;
                     String ref = null;
