@@ -1,5 +1,6 @@
 package pipeline;
 
+import common.WebDriverPool;
 import core.model.Product;
 import org.apache.logging.log4j.util.Strings;
 import us.codecraft.webmagic.ResultItems;
@@ -18,6 +19,23 @@ import java.util.logging.Logger;
 public class CrawlerPipeline implements Pipeline {
 
     private static Logger logger = Logger.getLogger(String.valueOf(CrawlerPipeline.class));
+
+    private static CrawlerPipeline instance;
+
+    private CrawlerPipeline() {
+    }
+
+    public static CrawlerPipeline getInstall() {
+        if (instance == null) {                         //Single Checked
+            synchronized (WebDriverPool.class) {
+                if (instance == null) {                 //Double Checked
+                    instance = new CrawlerPipeline();
+                }
+            }
+        }
+        return instance;
+    }
+
 
     @Override
     public void process(ResultItems resultItems, Task task) {

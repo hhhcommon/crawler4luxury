@@ -22,11 +22,8 @@ import us.codecraft.webmagic.downloader.HttpClientDownloader;
 import us.codecraft.webmagic.monitor.SpiderMonitor;
 import us.codecraft.webmagic.proxy.Proxy;
 import us.codecraft.webmagic.proxy.SimpleProxyProvider;
-import us.codecraft.webmagic.scheduler.RedisScheduler;
 
 import javax.management.JMException;
-import javax.swing.*;
-import javax.xml.stream.events.DTD;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -37,6 +34,9 @@ import java.util.regex.Pattern;
  * @Author: yang
  * @Date: 2017/12/5.18:02
  * @Desc: 香奈儿 爬虫
+ * <p>
+ * 未解决的问题： 除了中国 其他的价格 需要采集
+ * vpn 需要切换不同国家 用代理模式
  */
 public class ChannelCrawler extends BaseCrawler {
 
@@ -58,10 +58,13 @@ public class ChannelCrawler extends BaseCrawler {
         /**
          * 配置代理
          */
+        HttpClientDownloader httpClientDownloader = new HttpClientDownloader();
         spider = Spider.create(new ChannelCrawler(threadDept))
                 .addUrl("http://www.chanel.com/zh_CN/fashion.html#products")
-                .addPipeline(new CrawlerPipeline())
+                .addPipeline(CrawlerPipeline.getInstall())
                 .thread(threadDept);
+        httpClientDownloader.setProxyProvider(SimpleProxyProvider.from(new Proxy("127.0.0.1", 1080)));
+        spider.setDownloader(httpClientDownloader);
         try {
             SpiderMonitor.instance().register(spider);
         } catch (JMException e) {
@@ -157,7 +160,7 @@ public class ChannelCrawler extends BaseCrawler {
                                 product.setUrl(page.getUrl().toString());
                                 product.setTags(tag);
                                 //请求价格
-                                product.setPrice(getRefPrice("zh_CN", l));
+                                product.setEnPrice(getRefPrice("zh_HK", l.getData().get(0).getRefPrice()));
                                 //同一个系列的图片放到相同的图片
                                 product.setImg(Joiner.on("|").join(img));
                                 product.setClassification(listData.getTitle());
@@ -174,7 +177,7 @@ public class ChannelCrawler extends BaseCrawler {
                                 product.setLanguage(language);
                                 product.setUrl(page.getUrl().toString());
                                 //请求价格
-                                product.setPrice(getRefPrice("zh_CN", l));
+                                product.setEnPrice(getRefPrice("zh_HK", l.getData().get(0).getRefPrice()));
                                 //同一个系列的图片放到相同的图片
                                 product.setImg(Joiner.on("|").join(img));
                                 product.setClassification(listData.getTitle());
@@ -232,7 +235,7 @@ public class ChannelCrawler extends BaseCrawler {
                     p.setIntroduction(desc);
                     p.setRef(ref);
                     p.setSize(size);
-                    p.setPrice(price);
+                    p.setEnPrice(price);
                     p.setTags(tags);
                     page.putField("product", p);
                 }
@@ -245,31 +248,24 @@ public class ChannelCrawler extends BaseCrawler {
         }
     }
 
-    private String getRefPrice(String local, ChannelJson.DataBeanX.DetailsBean.InformationBean.DatasBean l) {
-
-        String price = null;
-        try {
-            String priceUrl = "http://ws.chanel.com/pricing/pricing_db/" + local + "/fashion/" + l.getData().get(0).getRefPrice() + "/?i_division=FSH&i_project=fsh_v3&i_client_interface=fsh_v3_misc&i_locale=" + local + "&format=json&callback=localJsonpPricingCallbackde59ebceb39f738952933882ef45e6ed";
-            String jsonPrice = HttpRequestUtil.sendGet(priceUrl);
-            price = RegexUtil.getDataByRegex("\"amount\":\"(.*?)\"", jsonPrice);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return price;
-    }
-
     private String getRefPrice(String local, String refPrice) {
-
         String price = null;
         try {
             String priceUrl = "http://ws.chanel.com/pricing/pricing_db/" + local + "/fashion/" + refPrice + "/?i_division=FSH&i_project=fsh_v3&i_client_interface=fsh_v3_misc&i_locale=" + local + "&format=json&callback=localJsonpPricingCallbackde59ebceb39f738952933882ef45e6ed";
-            String jsonPrice = HttpRequestUtil.sendGet(priceUrl);
+            Site site = Site.me().setDomain("www.chanel.com")
+                    .setCharset("utf-8")
+                    .addHeader("Cookie", "cookie_consent=consent; hp_lang=" + local + "; country=CN; _cs_v=0; CH_ROUTE=373336256.20480.0000; mt.s-lbx=1; WT_FPC=id=07cca411-6bba-4805-9b14-9b1ea9ffe0b7:lv=1514919268274:ss=1514937213831; __zlcmid=kIh1BK45JL2WeP; mt.v=2.169822375.1514966018378; __ag_cm_=1; device=desktop; ag_fid=YTEyOFUXykuZUpgF; _ga=GA1.2.1317918075.1512469626; _gid=GA1.2.142845839.1515378297; chanelmwhishlist=N4IghgxhIFwNoF0A0IBOAXA7rRBfIA%3D%3D; _cs_id=20a542ad-effc-a2d5-bc1e-7f0084c96951.1512469625.36.1515380948.1515380948.1.1546633625822")
+                    .setTimeOut(5000)
+                    .setRetryTimes(3)
+                    .setUserAgent("Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.9 Safari/537.36");
+            String jsonPrice = HttpRequestUtil.sendGet(priceUrl, site, new Proxy("127.0.0.1", 1080));
             price = RegexUtil.getDataByRegex("\"amount\":\"(.*?)\"", jsonPrice);
         } catch (Exception e) {
             e.printStackTrace();
         }
         return price;
     }
+
 
     public String replaceBlank(String str) {
         String dest = "";
@@ -286,6 +282,7 @@ public class ChannelCrawler extends BaseCrawler {
         site = Site.me()
                 .setDomain("www.chanel.com")
                 .setCharset("utf-8")
+                .addCookie("hp_lang", "zh_HK")
                 .setTimeOut(5000)
                 .setRetryTimes(3)
                 .setUserAgent("Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.9 Safari/537.36");

@@ -51,7 +51,7 @@ public class DolcegabbanaCrawler4CH extends BaseCrawler {
 //        urls.add("https://us.dolcegabbana.com/fr/femme/nouveautes/robe-bustier-en-tulle-rose-F68A5TFLEAAF0372.html?cgid=newin-women#HP_BAN=BAN2_171205_NEWIN_W&start=1");
         spider = Spider.create(new DolcegabbanaCrawler4CH(threadDept))
                 .addUrl((String[]) urls.toArray(new String[urls.size()]))
-                .addPipeline(new CrawlerPipeline())
+                .addPipeline(CrawlerPipeline.getInstall())
                 .thread(threadDept);
         try {
             SpiderMonitor.instance().register(spider);

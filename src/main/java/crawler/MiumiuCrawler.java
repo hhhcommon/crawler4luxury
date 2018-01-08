@@ -45,7 +45,7 @@ public class MiumiuCrawler extends BaseCrawler {
 //        urls.add("http://uk.louisvuitton.com/eng-gb/homepage");
         spider = Spider.create(new MiumiuCrawler(threadDept))
                 .addUrl((String[]) urls.toArray(new String[urls.size()]))
-                .addPipeline(new CrawlerPipeline())
+                .addPipeline(CrawlerPipeline.getInstall())
                 .thread(threadDept);
         try {
             SpiderMonitor.instance().register(spider);

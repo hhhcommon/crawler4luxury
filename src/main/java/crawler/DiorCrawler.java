@@ -49,7 +49,7 @@ public class DiorCrawler extends BaseCrawler {
     protected List<String> deepUrls = new ArrayList<>();
 
     private static final String HTTP_REG = "[a-zA-z]+://[^\\s]*";
-    private static final String DATA_REG = "data-track-object=\\{(.*?)\\}> <img ";
+
 
     public static void main(String[] args) {
         DbUtil.init();
@@ -59,13 +59,13 @@ public class DiorCrawler extends BaseCrawler {
     @Override
     public void run() {
         logger.info("============ DiorCrawler Crawler start=============");
-//        urls.add("https://www.dior.cn/home/zh_cn");
+        urls.add("https://www.dior.cn/home/zh_cn");
         urls.add("https://www.dior.com/home/de_de");
         urls.add("https://www.dior.com/home/en_gb");
         urls.add("https://www.dior.com/home/zh_hk");
         spider = Spider.create(new DiorCrawler(threadDept))
                 .addUrl((String[]) urls.toArray(new String[urls.size()]))
-                .addPipeline(new CrawlerPipeline())
+                .addPipeline(CrawlerPipeline.getInstall())
                 .thread(threadDept);
         try {
             SpiderMonitor.instance().register(spider);
@@ -81,13 +81,14 @@ public class DiorCrawler extends BaseCrawler {
         Document document = page.getHtml().getDocument();
         if (urls.contains(page.getUrl().toString())) {
             Elements diorNavs = page.getHtml().getDocument().select("nav.main-nav li");
-            ObjectUtil.checkNotNull(diorNavs, "dior Navs is null on line 71");
-            for (Element element : diorNavs) {
-                String url = element.getElementsByTag("a").attr("href");
-                if (!Strings.isNullOrEmpty(url)) {
-                    logger.info("navs url added>>>>>" + url);
-                    page.addTargetRequest(url);
-                    navList.add(url);
+            if (Objects.nonNull(diorNavs)) {
+                for (Element element : diorNavs) {
+                    String url = element.getElementsByTag("a").attr("href");
+                    if (!Strings.isNullOrEmpty(url)) {
+                        logger.info("加入到采集队列 " + url);
+                        page.addTargetRequest(url);
+                        navList.add(url);
+                    }
                 }
             }
         }
@@ -97,7 +98,7 @@ public class DiorCrawler extends BaseCrawler {
                 String url = element.getElementsByTag("a").attr("href");
                 if (!Strings.isNullOrEmpty(url)) {
                     if (url.matches(HTTP_REG)) {
-                        logger.info("diorNavsDeep url added>>>>>" + url);
+                        logger.info("加入到采集队列 " + url);
                         page.addTargetRequest(url);
                         detailList.add(url);
                     }
@@ -111,6 +112,7 @@ public class DiorCrawler extends BaseCrawler {
                     for (Element element : elements) {
                         String link = "https://www.dior.cn" + element.getElementsByTag("a").attr("href");
                         if (!Strings.isNullOrEmpty(link)) {
+                            logger.info("加入到采集队列 " + link);
                             deepUrls.add(link);
                             page.addTargetRequest(link);
                         }

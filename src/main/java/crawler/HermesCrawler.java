@@ -38,7 +38,7 @@ public class HermesCrawler extends BaseCrawler {
         urls.add("https://www.hermes.com/us/en/");
         spider = Spider.create(new HermesCrawler(threadDept))
                 .addUrl((String[]) urls.toArray(new String[urls.size()]))
-                .addPipeline(new CrawlerPipeline())
+                .addPipeline(CrawlerPipeline.getInstall())
                 .thread(threadDept);
         try {
             SpiderMonitor.instance().register(spider);

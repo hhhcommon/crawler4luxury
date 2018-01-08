@@ -49,7 +49,7 @@ public class PradaCrawler extends BaseCrawler {
         urls.add("https://www.prada.com/cn/zh/woman.html");
         spider = Spider.create(new PradaCrawler(threadDept))
                 .addUrl((String[]) urls.toArray(new String[urls.size()]))
-                .addPipeline(new CrawlerPipeline())
+                .addPipeline(CrawlerPipeline.getInstall())
                 .thread(threadDept);
         try {
             SpiderMonitor.instance().register(spider);

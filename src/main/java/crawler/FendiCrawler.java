@@ -45,7 +45,7 @@ public class FendiCrawler extends BaseCrawler {
         }
         spider = Spider.create(new FendiCrawler(threadDept))
                 .addUrl((String[]) urls.toArray(new String[urls.size()]))
-                .addPipeline(new CrawlerPipeline())
+                .addPipeline(CrawlerPipeline.getInstall())
                 .thread(threadDept);
         try {
             SpiderMonitor.instance().register(spider);

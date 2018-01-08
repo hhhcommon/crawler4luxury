@@ -50,7 +50,7 @@ public class ChristianLouboutinCarwler extends BaseCrawler {
         urls.add("http://eu.christianlouboutin.com/de_en/catalogsearch/result/?q=*");
         spider = Spider.create(new ChristianLouboutinCarwler(threadDept))
                 .addUrl((String[]) urls.toArray(new String[urls.size()]))
-                .addPipeline(new CrawlerPipeline())
+                .addPipeline(CrawlerPipeline.getInstall())
                 .thread(threadDept);
         try {
             SpiderMonitor.instance().register(spider);

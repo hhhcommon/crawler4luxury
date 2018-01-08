@@ -6,112 +6,35 @@ package common;
  * @Desc: to do?
  * <p>
  * 向指定URL发送GET方法的请求
- * @param url   发送请求的URL
- * @param param 请求参数，请求参数应该是 name1=value1&name2=value2 的形式。
- * @return URL 所代表远程资源的响应结果
- * <p>
- * 向指定URL发送GET方法的请求
- * @param url   发送请求的URL
- * @param param 请求参数，请求参数应该是 name1=value1&name2=value2 的形式。
- * @return URL 所代表远程资源的响应结果
- * <p>
- * 向指定URL发送GET方法的请求
- * @param url   发送请求的URL
- * @param param 请求参数，请求参数应该是 name1=value1&name2=value2 的形式。
- * @return URL 所代表远程资源的响应结果
- * <p>
- * 向指定URL发送GET方法的请求
- * @param url   发送请求的URL
- * @param param 请求参数，请求参数应该是 name1=value1&name2=value2 的形式。
- * @return URL 所代表远程资源的响应结果
- * <p>
- * 向指定URL发送GET方法的请求
- * @param url   发送请求的URL
- * @param param 请求参数，请求参数应该是 name1=value1&name2=value2 的形式。
- * @return URL 所代表远程资源的响应结果
- * <p>
- * 向指定URL发送GET方法的请求
- * @param url   发送请求的URL
- * @param param 请求参数，请求参数应该是 name1=value1&name2=value2 的形式。
- * @return URL 所代表远程资源的响应结果
- * <p>
- * 向指定URL发送GET方法的请求
- * @param url   发送请求的URL
- * @param param 请求参数，请求参数应该是 name1=value1&name2=value2 的形式。
- * @return URL 所代表远程资源的响应结果
- * <p>
- * 向指定URL发送GET方法的请求
- * @param url   发送请求的URL
- * @param param 请求参数，请求参数应该是 name1=value1&name2=value2 的形式。
- * @return URL 所代表远程资源的响应结果
- * <p>
- * 向指定URL发送GET方法的请求
- * @param url   发送请求的URL
- * @param param 请求参数，请求参数应该是 name1=value1&name2=value2 的形式。
- * @return URL 所代表远程资源的响应结果
- * <p>
- * 向指定URL发送GET方法的请求
- * @param url   发送请求的URL
- * @param param 请求参数，请求参数应该是 name1=value1&name2=value2 的形式。
- * @return URL 所代表远程资源的响应结果
- * <p>
- * 向指定URL发送GET方法的请求
- * @param url   发送请求的URL
- * @param param 请求参数，请求参数应该是 name1=value1&name2=value2 的形式。
- * @return URL 所代表远程资源的响应结果
- * <p>
- * 向指定URL发送GET方法的请求
- * @param url   发送请求的URL
- * @param param 请求参数，请求参数应该是 name1=value1&name2=value2 的形式。
- * @return URL 所代表远程资源的响应结果
- * <p>
- * 向指定URL发送GET方法的请求
- * @param url   发送请求的URL
- * @param param 请求参数，请求参数应该是 name1=value1&name2=value2 的形式。
- * @return URL 所代表远程资源的响应结果
- * <p>
- * 向指定URL发送GET方法的请求
- * @param url   发送请求的URL
- * @param param 请求参数，请求参数应该是 name1=value1&name2=value2 的形式。
- * @return URL 所代表远程资源的响应结果
- * <p>
- * 向指定URL发送GET方法的请求
- * @param url   发送请求的URL
- * @param param 请求参数，请求参数应该是 name1=value1&name2=value2 的形式。
- * @return URL 所代表远程资源的响应结果
- * <p>
- * 向指定URL发送GET方法的请求
- * @param url   发送请求的URL
- * @param param 请求参数，请求参数应该是 name1=value1&name2=value2 的形式。
- * @return URL 所代表远程资源的响应结果
- * <p>
- * 向指定URL发送GET方法的请求
- * @param url   发送请求的URL
- * @param param 请求参数，请求参数应该是 name1=value1&name2=value2 的形式。
- * @return URL 所代表远程资源的响应结果
- * <p>
- * 向指定URL发送GET方法的请求
- * @param url   发送请求的URL
- * @param param 请求参数，请求参数应该是 name1=value1&name2=value2 的形式。
- * @return URL 所代表远程资源的响应结果
- * <p>
- * 向指定URL发送GET方法的请求
- * @param url   发送请求的URL
- * @param param 请求参数，请求参数应该是 name1=value1&name2=value2 的形式。
- * @return URL 所代表远程资源的响应结果
- * <p>
- * 向指定URL发送GET方法的请求
- * @param url   发送请求的URL
- * @param param 请求参数，请求参数应该是 name1=value1&name2=value2 的形式。
- * @return URL 所代表远程资源的响应结果
  */
-/**
- * 向指定URL发送GET方法的请求
- *
- * @param url   发送请求的URL
- * @param param 请求参数，请求参数应该是 name1=value1&name2=value2 的形式。
- * @return URL 所代表远程资源的响应结果
- */
+
+import org.apache.commons.io.IOUtils;
+import org.apache.http.HttpException;
+import org.apache.http.HttpRequest;
+import org.apache.http.HttpRequestInterceptor;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.CookieStore;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.config.Registry;
+import org.apache.http.config.RegistryBuilder;
+import org.apache.http.config.SocketConfig;
+import org.apache.http.conn.socket.ConnectionSocketFactory;
+import org.apache.http.conn.socket.PlainConnectionSocketFactory;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.impl.client.*;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.http.impl.cookie.BasicClientCookie;
+import org.apache.http.protocol.HttpContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import us.codecraft.webmagic.Page;
+import us.codecraft.webmagic.Request;
+import us.codecraft.webmagic.Site;
+import us.codecraft.webmagic.Task;
+import us.codecraft.webmagic.downloader.*;
+import us.codecraft.webmagic.proxy.Proxy;
+import us.codecraft.webmagic.proxy.SimpleProxyProvider;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -121,9 +44,13 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
 
+
 public class HttpRequestUtil {
+    private static transient Logger logger = LoggerFactory.getLogger(HttpRequestUtil.class);
+    private static HttpClientDownloader httpClientDownloader = new HttpClientDownloader();
 
     public static String sendGet(String url1) {
+
         String urlString = "";
         String current;
         try {
@@ -204,5 +131,19 @@ public class HttpRequestUtil {
             }
         }
         return result;
+    }
+
+
+    public static String sendGet(String url, Site site, Proxy proxy) {
+        httpClientDownloader.setProxyProvider(SimpleProxyProvider.from(proxy));
+        Task task = site.toTask();
+        Page page = httpClientDownloader.download(new Request(url), task);
+        return page.getHtml().get();
+    }
+
+    public static String sendGet(String url, Site site) {
+        Task task = site.toTask();
+        Page page = httpClientDownloader.download(new Request(url), task);
+        return page.getHtml().get();
     }
 }

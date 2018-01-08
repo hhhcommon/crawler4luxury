@@ -62,7 +62,7 @@ public class AlexanderMcQueenCrawler extends BaseCrawler {
         spider = Spider.create(new AlexanderMcQueenCrawler(threadDept))
                 .addUrl((String[]) urls.toArray(new String[urls.size()]))
                 .thread(threadDept)
-                .addPipeline(new CrawlerPipeline());
+                .addPipeline(CrawlerPipeline.getInstall());
         try {
             SpiderMonitor.instance().register(spider);
         } catch (JMException e) {

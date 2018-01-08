@@ -54,7 +54,7 @@ public class GucciCrawler extends BaseCrawler {
 //            urls.add("https://www.gucci.com/de/de/");
             spider = Spider.create(new GucciCrawler(threadDept))
                     .addUrl((String[]) urls.toArray(new String[urls.size()]))
-                    .addPipeline(new CrawlerPipeline())
+                    .addPipeline(CrawlerPipeline.getInstall())
                     .setDownloader(new SeleniumDownloader(webDriver, driverComponent, listText))
                     .thread(threadDept);
             try {
