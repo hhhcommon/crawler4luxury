@@ -2,7 +2,7 @@ package crawler;
 
 import base.BaseCrawler;
 import com.google.common.base.Joiner;
-import core.model.Product;
+import core.model.ProductCrawler;
 import org.apache.logging.log4j.util.Strings;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -103,7 +103,7 @@ public class HermesCrawler extends BaseCrawler {
                 }
             }
 
-            Product p = new Product();
+            ProductCrawler p = new ProductCrawler();
             p.setBrand("hermes");
             p.setColor(Joiner.on("|").join(colorList));
             p.setImg(Joiner.on("|").join(imgList));

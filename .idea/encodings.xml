@@ -6,7 +6,7 @@
     <file url="file://$PROJECT_DIR$/src/main/java/common/RegexUtil.java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/src/main/java/core/config/MainConfig.java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/src/main/java/core/config/_JFinalDemoGenerator.java" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/src/main/java/core/model/Product.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/main/java/core/model/ProductCrawler.java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/src/main/java/core/model/_MappingKit.java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/src/main/java/core/model/base/BaseProduct.java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/src/main/java/crawler/AlexanderMcQueenCrawler.java" charset="UTF-8" />

@@ -4,8 +4,7 @@ import base.BaseCrawler;
 import com.google.common.base.Joiner;
 import common.DbUtil;
 import common.RegexUtil;
-import core.model.Product;
-import componentImpl.WebDriverComponent;
+import core.model.ProductCrawler;
 import org.apache.logging.log4j.util.Strings;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -93,7 +92,7 @@ public class JimmyChooCrawler extends BaseCrawler {
         //解析详情页面
         if (detailList.contains(page.getUrl().toString())) {
             document = driverComponent.getPage(page.getUrl().toString(), webDriver);
-            String pname = document.select("h1.product-name").text();
+            String pname = document.select("h1.productCrawler-name").text();
             String prize = document.getElementsByClass("text-uppercase").attr("content");
             String desc = document.getElementById("tab2").text();
             String ref = RegexUtil.getDataByRegex("\"sku\":\"(.*?)\",\"sku_code\":", page.getHtml().toString());
@@ -132,25 +131,25 @@ public class JimmyChooCrawler extends BaseCrawler {
 
             }
             List<String> imgLs = new ArrayList<>();
-            Elements imgEl = document.select("img[class=js-producttile_image js-product-image product-image]");
+            Elements imgEl = document.select("img[class=js-producttile_image js-productCrawler-image productCrawler-image]");
             for (Element element : imgEl) {
                 String img = element.attr("src").trim();
                 if (!Strings.isBlank(img)) {
                     imgLs.add(img);
                 }
             }
-            Product product = new Product();
-            product.setUrl(page.getUrl().toString());
-            product.setRef(ref);
-            product.setName(pname);
-            product.setImg(Joiner.on("|").join(imgLs));
-            product.setColor(Joiner.on("|").join(colorLs));
-            product.setIntroduction(desc);
-            product.setEnPrice(prize);
-            product.setClassification(Classification);
-            product.setBrand("jimmychoo");
-            product.setLanguage("en_CN");
-            page.putField("product", product);
+            ProductCrawler productCrawler = new ProductCrawler();
+            productCrawler.setUrl(page.getUrl().toString());
+            productCrawler.setRef(ref);
+            productCrawler.setName(pname);
+            productCrawler.setImg(Joiner.on("|").join(imgLs));
+            productCrawler.setColor(Joiner.on("|").join(colorLs));
+            productCrawler.setIntroduction(desc);
+            productCrawler.setEnPrice(prize);
+            productCrawler.setClassification(Classification);
+            productCrawler.setBrand("jimmychoo");
+            productCrawler.setLanguage("en_CN");
+            page.putField("productCrawler", productCrawler);
         }
 
 

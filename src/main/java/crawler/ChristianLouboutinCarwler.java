@@ -6,7 +6,7 @@ import com.google.common.base.Joiner;
 import common.DbUtil;
 import common.JsonParseUtil;
 import common.RegexUtil;
-import core.model.Product;
+import core.model.ProductCrawler;
 import io.netty.util.internal.ObjectUtil;
 import model.ChristianPrize;
 import org.apache.logging.log4j.util.Strings;
@@ -17,7 +17,6 @@ import us.codecraft.webmagic.Page;
 import us.codecraft.webmagic.Site;
 import us.codecraft.webmagic.Spider;
 import us.codecraft.webmagic.monitor.SpiderMonitor;
-import us.codecraft.webmagic.processor.PageProcessor;
 
 import javax.management.JMException;
 import java.util.ArrayList;
@@ -71,19 +70,19 @@ public class ChristianLouboutinCarwler extends BaseCrawler {
                 }
             }
         } else {
-            Product product = analyticalData(page);
-            ObjectUtil.checkNotNull(product, "ChristianLouboutinCarwler product is null");
-            page.putField("product", product);
+            ProductCrawler productCrawler = analyticalData(page);
+            ObjectUtil.checkNotNull(productCrawler, "ChristianLouboutinCarwler productCrawler is null");
+            page.putField("productCrawler", productCrawler);
         }
 
     }
 
-    private Product analyticalData(Page page) {
-        Product product = new Product();
+    private ProductCrawler analyticalData(Page page) {
+        ProductCrawler productCrawler = new ProductCrawler();
         String json = RegexUtil.getDataByRegex("<script type=\"application.ld.json\">\\s+(.*?)</script>", page.getHtml().toString());
         List<String> imgList = new ArrayList<String>();
         // 图片获取
-        Elements elements = page.getHtml().getDocument().getElementsByClass("product-main").first().getElementsByTag("img");
+        Elements elements = page.getHtml().getDocument().getElementsByClass("productCrawler-main").first().getElementsByTag("img");
         ObjectUtil.checkNotNull(elements, "element is null in chirstianlouboutincarwler  on line 78");
         for (Element element : elements) {
             String img = element.getElementsByTag("img").attr("data-src");
@@ -92,38 +91,38 @@ public class ChristianLouboutinCarwler extends BaseCrawler {
             }
         }
         if (!Strings.isBlank(json)) {
-            product.setBrand(JsonParseUtil.getString(json, "brand"));
-            product.setUrl(page.getUrl().toString());
-            product.setName(JsonParseUtil.getString(json, "name"));
-            product.setIntroduction(JsonParseUtil.getString(json, "description"));
-            product.setImg(Joiner.on("|").join(imgList));
-            product.setClassification(JsonParseUtil.getString(json, "category"));
-            product.setRef(JsonParseUtil.getString(json, "sku"));
-            product.setColor(JsonParseUtil.getString(json, "color"));
+            productCrawler.setBrand(JsonParseUtil.getString(json, "brand"));
+            productCrawler.setUrl(page.getUrl().toString());
+            productCrawler.setName(JsonParseUtil.getString(json, "name"));
+            productCrawler.setIntroduction(JsonParseUtil.getString(json, "description"));
+            productCrawler.setImg(Joiner.on("|").join(imgList));
+            productCrawler.setClassification(JsonParseUtil.getString(json, "category"));
+            productCrawler.setRef(JsonParseUtil.getString(json, "sku"));
+            productCrawler.setColor(JsonParseUtil.getString(json, "color"));
         }
 
         ChristianPrize christianPrize = null;
         try {
-            String jsonPrize = RegexUtil.getDataByRegex("var optionsPrice = new Product.OptionsPrice.(.*?).;", page.getHtml().toString());
+            String jsonPrize = RegexUtil.getDataByRegex("var optionsPrice = new ProductCrawler.OptionsPrice.(.*?).;", page.getHtml().toString());
             christianPrize = JSON.parseObject(jsonPrize, ChristianPrize.class);
         } catch (Exception e) {
             e.printStackTrace();
         }
         if (christianPrize != null) {
             if (page.getUrl().toString().contains("de_en")) {
-                product.setEurPrice(String.valueOf(christianPrize.getProductPrice()));
-                product.setLanguage("de_en");
+                productCrawler.setEurPrice(String.valueOf(christianPrize.getProductPrice()));
+                productCrawler.setLanguage("de_en");
             }
             if (page.getUrl().toString().contains("hk_en")) {
-                product.setHkPrice(String.valueOf(christianPrize.getProductPrice()));
-                product.setLanguage("hk_en");
+                productCrawler.setHkPrice(String.valueOf(christianPrize.getProductPrice()));
+                productCrawler.setLanguage("hk_en");
             }
             if (page.getUrl().toString().contains("uk_en")) {
-                product.setEnPrice(String.valueOf(christianPrize.getProductPrice()));
-                product.setLanguage("uk_en");
+                productCrawler.setEnPrice(String.valueOf(christianPrize.getProductPrice()));
+                productCrawler.setLanguage("uk_en");
             }
         }
-        return product;
+        return productCrawler;
     }
 
     @Override

@@ -2,10 +2,9 @@ package crawler;
 
 import base.BaseCrawler;
 import com.google.common.base.Joiner;
-import com.sun.deploy.net.HttpUtils;
 import common.DbUtil;
 import common.RegexUtil;
-import core.model.Product;
+import core.model.ProductCrawler;
 import download.SeleniumDownloader;
 import org.apache.logging.log4j.util.Strings;
 import org.jsoup.nodes.Document;
@@ -147,7 +146,7 @@ public class GucciCrawler extends BaseCrawler {
                     imgList.add(img);
                 }
             }
-            Product p = new Product();
+            ProductCrawler p = new ProductCrawler();
             p.setBrand("gucci");
             p.setImg(Joiner.on("|").join(imgList));
             p.setName(pname);

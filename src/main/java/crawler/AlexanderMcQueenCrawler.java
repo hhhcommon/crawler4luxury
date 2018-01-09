@@ -7,10 +7,9 @@ import com.google.common.base.Strings;
 import common.DbUtil;
 import common.HttpRequestUtil;
 import common.RegexUtil;
-import componentImpl.WebDriverComponent;
+import core.model.ProductCrawler;
 import model.Alexandermcqueen;
 import model.ColorAlexander;
-import core.model.Product;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
@@ -106,10 +105,10 @@ public class AlexanderMcQueenCrawler extends BaseCrawler {
          */
         if (detailList.contains(page.getUrl().toString())) {
             driverComponent.destoty();
-            Product product = analyticalData(page);
+            ProductCrawler productCrawler = analyticalData(page);
             //加入数据
-            if (!Objects.isNull(product) && !Strings.isNullOrEmpty(product.getName())) {
-                page.putField("product", product);
+            if (!Objects.isNull(productCrawler) && !Strings.isNullOrEmpty(productCrawler.getName())) {
+                page.putField("productCrawler", productCrawler);
             }
         }
 
@@ -121,11 +120,11 @@ public class AlexanderMcQueenCrawler extends BaseCrawler {
      * @param page
      * @return
      */
-    public Product analyticalData(Page page) {
+    public ProductCrawler analyticalData(Page page) {
         String Introduction = null;// 详细说明
         String imgUrl;// 商品大图
         String num;// 商品编号
-        Product product = new Product();
+        ProductCrawler productCrawler = new ProductCrawler();
         Alexandermcqueen alexandermcqueen;
         ColorAlexander colorAlexander;
         if (page.getUrl().regex(reg).match() || page.getUrl().regex(hkreg).match()) {
@@ -163,36 +162,36 @@ public class AlexanderMcQueenCrawler extends BaseCrawler {
             if (elements.size() > 0) {
                 Introduction = elements.first().text();
             }
-            product.setIntroduction(Introduction);
+            productCrawler.setIntroduction(Introduction);
             List<String> listImg = new ArrayList<String>();
             listImg = RegexUtil.matchGroup(
                     "<img alt=\".*?\" data-ytos-code10=\".*?\" data-ytos-image-shot=\".\" data-ytos-image-size=\".*?\" itemprop=\"image\" sizes=\".*?\" srcset=\"(.*?) 2400w",
                     page.getHtml().toString());
             imgUrl = Joiner.on("|").join(listImg);// 多图采集
-            product.setImg(imgUrl);
-            product.setUrl(page.getUrl().toString());
-            product.setLanguage("zh_CN");
-            product.setBrand("alexandermcqueen");
+            productCrawler.setImg(imgUrl);
+            productCrawler.setUrl(page.getUrl().toString());
+            productCrawler.setLanguage("zh_CN");
+            productCrawler.setBrand("alexandermcqueen");
             try {
                 // 颜色实体描述
                 alexandermcqueen = JSON.parseObject(HttpRequestUtil.sendGet(prizeUrl), Alexandermcqueen.class);
                 colorAlexander = JSON.parseObject(HttpRequestUtil.sendGet(colorUrl), ColorAlexander.class);
                 if (alexandermcqueen != null) {
-                    product.setName(alexandermcqueen.getProduct_title());
-                    product.setClassification(alexandermcqueen.getProduct_category());
+                    productCrawler.setName(alexandermcqueen.getProduct_title());
+                    productCrawler.setClassification(alexandermcqueen.getProduct_category());
                     if (page.getUrl().toString().contains("http://www.alexandermcqueen.com/hk")) {
-                        product.setHkPrice(String.valueOf(alexandermcqueen.getProduct_price()).toString());
+                        productCrawler.setHkPrice(String.valueOf(alexandermcqueen.getProduct_price()).toString());
                     }
                     if (page.getUrl().toString().contains("http://www.alexandermcqueen.cn/cn")) {
-                        product.setPrice(String.valueOf(alexandermcqueen.getProduct_price()).toString());
+                        productCrawler.setPrice(String.valueOf(alexandermcqueen.getProduct_price()).toString());
                     }
                     if (page.getUrl().toString().contains("http://www.alexandermcqueen.com/de")) {
-                        product.setEurPrice(String.valueOf(alexandermcqueen.getProduct_price()).toString());
+                        productCrawler.setEurPrice(String.valueOf(alexandermcqueen.getProduct_price()).toString());
                     }
                     if (page.getUrl().toString().contains("http://www.alexandermcqueen.com/gb")) {
-                        product.setEnPrice(String.valueOf(alexandermcqueen.getProduct_price()).toString());
+                        productCrawler.setEnPrice(String.valueOf(alexandermcqueen.getProduct_price()).toString());
                     }
-                    product.setRef(alexandermcqueen.getProduct_cod10());
+                    productCrawler.setRef(alexandermcqueen.getProduct_cod10());
                 }
                 if (colorAlexander != null) {
                     List<ColorAlexander.SizesBean> list = colorAlexander.getSizes();
@@ -202,7 +201,7 @@ public class AlexanderMcQueenCrawler extends BaseCrawler {
                             sizes.add(o.getDescription());
                         }
                     }
-                    product.setSize(Joiner.on("|").join(sizes));
+                    productCrawler.setSize(Joiner.on("|").join(sizes));
                     List<ColorAlexander.ColorsBean> list1 = colorAlexander.getColors();
                     List<String> colo = new ArrayList<String>();
                     if (list1.size() > 0) {
@@ -210,14 +209,14 @@ public class AlexanderMcQueenCrawler extends BaseCrawler {
                             colo.add(o.getDescription());
                         }
                     }
-                    product.setColor(Joiner.on("|").join(colo));
+                    productCrawler.setColor(Joiner.on("|").join(colo));
                 }
             } catch (Exception ex) {
                 logger.info("请求接口发生错误");
-                return product;
+                return productCrawler;
             }
-            logger.info("product=========" + product.toString());
-            return product;
+            logger.info("productCrawler=========" + productCrawler.toString());
+            return productCrawler;
         }
 
         return null;

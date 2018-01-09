@@ -4,7 +4,7 @@ import base.BaseCrawler;
 import com.google.common.base.Joiner;
 import common.DbUtil;
 import common.RegexUtil;
-import core.model.Product;
+import core.model.ProductCrawler;
 import org.apache.logging.log4j.util.Strings;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -75,7 +75,7 @@ public class FendiCrawler extends BaseCrawler {
             String ref = document.getElementsByClass("product-description").first().getElementsByClass("code").text();
             String price = document.getElementsByClass("price").first().text();
             String classification = document.getElementById("dropdown-main-category").getElementsByTag("meta").attr("content");
-            Product p = new Product();
+            ProductCrawler p = new ProductCrawler();
             p.setBrand("fendi");
             p.setColor(color);
             p.setImg(Joiner.on("|").join(imgList));

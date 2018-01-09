@@ -5,8 +5,7 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
 import common.DbUtil;
 import common.HttpRequestUtil;
-import core.model.Product;
-import componentImpl.WebDriverComponent;
+import core.model.ProductCrawler;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
@@ -161,7 +160,7 @@ public class ValentinoCrawler extends BaseCrawler {
             } catch (Exception e) {
                 logger.info("请求英国网址出错 错误原因" + e.toString());
             }
-            Product p = new Product();
+            ProductCrawler p = new ProductCrawler();
             p.setBrand("valentino");
             p.setClassification(classification);
             p.setImg(Joiner.on("|").join(imgList));

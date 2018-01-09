@@ -4,10 +4,9 @@ package crawler;
 import base.BaseCrawler;
 import com.alibaba.fastjson.JSON;
 import com.google.common.base.Joiner;
-import common.DbUtil;
 import common.HttpRequestUtil;
 import common.RegexUtil;
-import core.model.Product;
+import core.model.ProductCrawler;
 import model.BurBerryItem;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -108,9 +107,9 @@ public class BurberryCrawler extends BaseCrawler {
                 }
             }
             if (page.getUrl().regex(reg).match()) {// 处理页
-                Product product = analyticalData(page);
-                if (product != null) {
-                    page.putField("product", product);
+                ProductCrawler productCrawler = analyticalData(page);
+                if (productCrawler != null) {
+                    page.putField("productCrawler", productCrawler);
                 }
             }
 
@@ -126,44 +125,44 @@ public class BurberryCrawler extends BaseCrawler {
      * @param page
      * @return
      */
-    public Product analyticalData(Page page) {
-        Product product = new Product();
+    public ProductCrawler analyticalData(Page page) {
+        ProductCrawler productCrawler = new ProductCrawler();
         Document document = page.getHtml().getDocument();
-        product.setBrand("burberry");
-        product.setLanguage("zh_CN");
-        product.setUrl(page.getUrl().toString());
-        product.setName(document.getElementsByClass("product-purchase_name").first().text());
+        productCrawler.setBrand("burberry");
+        productCrawler.setLanguage("zh_CN");
+        productCrawler.setUrl(page.getUrl().toString());
+        productCrawler.setName(document.getElementsByClass("productCrawler-purchase_name").first().text());
         List<String> temp = new ArrayList<String>();
         //获取图片
-        Elements imgEl = document.getElementsByClass("product-carousel_item");
+        Elements imgEl = document.getElementsByClass("productCrawler-carousel_item");
         if (imgEl != null && imgEl.size() > 0) {
             for (Element element : imgEl) {
                 String img = element.getElementsByTag("img").attr("src");
                 temp.add(img);
             }
         }
-        product.setImg(Joiner.on("|").join(temp));
+        productCrawler.setImg(Joiner.on("|").join(temp));
         try {
-            product.setPrice(document.getElementsByClass("product-purchase_price").first().text().split("¥")[1]);
+            productCrawler.setPrice(document.getElementsByClass("productCrawler-purchase_price").first().text().split("¥")[1]);
         } catch (Exception e) {
             logger.info("--------------价格转化 发生错误----------------");
         }
-        product.setRef(RegexUtil.getDataByRegex("(\\d+)", document.getElementsByClass("product-purchase_item-number").first().text()));
-        product.setIntroduction(document.getElementsByClass("accordion-tab_content").first().text());
+        productCrawler.setRef(RegexUtil.getDataByRegex("(\\d+)", document.getElementsByClass("productCrawler-purchase_item-number").first().text()));
+        productCrawler.setIntroduction(document.getElementsByClass("accordion-tab_content").first().text());
 
         try {
-            Elements sizeEl = document.select("label.product-purchase_option");
+            Elements sizeEl = document.select("label.productCrawler-purchase_option");
 
             if (sizeEl != null && sizeEl.size() > 0) {
                 List<String> list = new ArrayList<String>();
                 for (Element element : sizeEl) {
                     list.add(element.text());
                 }
-                product.setSize(Joiner.on("|").join(list));
+                productCrawler.setSize(Joiner.on("|").join(list));
 
             }
 
-            Element colorEl = document.select("div.product-purchase_options").first();
+            Element colorEl = document.select("div.productCrawler-purchase_options").first();
             if (colorEl != null) {
                 List<String> list = new ArrayList<String>();
                 Elements colors = colorEl.getElementsByTag("span");
@@ -171,17 +170,17 @@ public class BurberryCrawler extends BaseCrawler {
                     String color = element.getElementsByTag("a").first().getElementsByTag("img").attr("title");
                     list.add(color);
                 }
-                product.setColor(Joiner.on("|").join(list));
+                productCrawler.setColor(Joiner.on("|").join(list));
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
 
         // 获取香港价格
-        String hkUrl = product.getUrl().replace("cn", "hk");
+        String hkUrl = productCrawler.getUrl().replace("cn", "hk");
         try {
             String html = HttpRequestUtil.sendGet(hkUrl);
-            product
+            productCrawler
                     .setHkPrice(RegexUtil.getDataByRegex("<meta property=\"og:price:amount\" content=\"(.*?)\"/>", html));
         } catch (Exception e) {
             e.printStackTrace();
@@ -189,10 +188,10 @@ public class BurberryCrawler extends BaseCrawler {
 
         // 获取德国价格
 
-        String deUrl = product.getUrl().replace("cn", "de");
+        String deUrl = productCrawler.getUrl().replace("cn", "de");
         try {
             String html = HttpRequestUtil.sendGet(deUrl);
-            product
+            productCrawler
                     .setEurPrice(RegexUtil.getDataByRegex("<meta property=\"og:price:amount\" content=\"(.*?)\"/>", html));
         } catch (Exception e) {
             e.printStackTrace();
@@ -200,15 +199,15 @@ public class BurberryCrawler extends BaseCrawler {
 
         // 获取英国价格
 
-        String enUrl = product.getUrl().replace("cn", "uk");
+        String enUrl = productCrawler.getUrl().replace("cn", "uk");
         try {
             String html = HttpRequestUtil.sendGet(enUrl);
-            product
+            productCrawler
                     .setEnPrice(RegexUtil.getDataByRegex("<meta property=\"og:price:amount\" content=\"(.*?)\"/>", html));
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return product;
+        return productCrawler;
     }
 
 

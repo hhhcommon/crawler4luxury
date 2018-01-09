@@ -7,7 +7,7 @@ import common.DbUtil;
 import common.HttpRequestUtil;
 import common.JsonParseUtil;
 import common.RegexUtil;
-import core.model.Product;
+import core.model.ProductCrawler;
 import io.netty.util.internal.ObjectUtil;
 import model.ChannelJson;
 import org.apache.logging.log4j.util.Strings;
@@ -35,8 +35,8 @@ import java.util.regex.Pattern;
  * @Date: 2017/12/5.18:02
  * @Desc: 香奈儿 爬虫
  * <p>
- * 未解决的问题： 除了中国 其他的价格 需要采集
- * vpn 需要切换不同国家 用代理模式
+ * 问题： 除了中国 其他的价格 需要采集
+ * 解决方案：vpn 需要切换不同国家 用代理模式
  */
 public class ChannelCrawler extends BaseCrawler {
 
@@ -49,7 +49,7 @@ public class ChannelCrawler extends BaseCrawler {
 
     public static void main(String[] args) {
         DbUtil.init();
-        new ChannelCrawler(1).run();
+        new ChannelCrawler(5).run();
     }
 
     @Override
@@ -146,48 +146,48 @@ public class ChannelCrawler extends BaseCrawler {
                     List<ChannelJson.DataBeanX.DetailsBean.InformationBean> list = channelJsons.getData().getDetails().getInformation();
                     //高级成衣的附属商品标志
                     String code = "";
-                    List<Product> productList = new ArrayList<>();
+                    List<ProductCrawler> productCrawlerList = new ArrayList<>();
                     for (ChannelJson.DataBeanX.DetailsBean.InformationBean listData : list) {
                         for (ChannelJson.DataBeanX.DetailsBean.InformationBean.DatasBean l : listData.getDatas()) {
                             if (listData.getTitle().contains("高级成衣")) {
-                                Product product = new Product();
-                                product.setName(l.getTitle());
-                                product.setColor(l.getColor());
-                                product.setMaterial(l.getMaterial());
-                                product.setRef(l.getData().get(0).getRef());
+                                ProductCrawler productCrawler = new ProductCrawler();
+                                productCrawler.setName(l.getTitle());
+                                productCrawler.setColor(l.getColor());
+                                productCrawler.setMaterial(l.getMaterial());
+                                productCrawler.setRef(l.getData().get(0).getRef());
                                 code = l.getData().get(0).getRef();
-                                product.setLanguage(language);
-                                product.setUrl(page.getUrl().toString());
-                                product.setTags(tag);
+                                productCrawler.setLanguage(language);
+                                productCrawler.setUrl(page.getUrl().toString());
+                                productCrawler.setTags(tag);
                                 //请求价格
-                                product.setEnPrice(getRefPrice("zh_HK", l.getData().get(0).getRefPrice()));
+                                productCrawler.setEurPrice(getRefPrice("zh_HK", l.getData().get(0).getRefPrice()));
                                 //同一个系列的图片放到相同的图片
-                                product.setImg(Joiner.on("|").join(img));
-                                product.setClassification(listData.getTitle());
-                                product.setBrand("chanel");
-                                productList.add(product);
+                                productCrawler.setImg(Joiner.on("|").join(img));
+                                productCrawler.setClassification(listData.getTitle());
+                                productCrawler.setBrand("chanel");
+                                productCrawlerList.add(productCrawler);
                             } else {
-                                Product product = new Product();
-                                product.setName(l.getTitle());
-                                product.setColor(l.getColor());
-                                product.setMaterial(l.getMaterial());
-                                product.setRef(l.getData().get(0).getRef());
-                                product.setCode(code);
-                                product.setTags(tag);
-                                product.setLanguage(language);
-                                product.setUrl(page.getUrl().toString());
+                                ProductCrawler productCrawler = new ProductCrawler();
+                                productCrawler.setName(l.getTitle());
+                                productCrawler.setColor(l.getColor());
+                                productCrawler.setMaterial(l.getMaterial());
+                                productCrawler.setRef(l.getData().get(0).getRef());
+                                productCrawler.setCode(code);
+                                productCrawler.setTags(tag);
+                                productCrawler.setLanguage(language);
+                                productCrawler.setUrl(page.getUrl().toString());
                                 //请求价格
-                                product.setEnPrice(getRefPrice("zh_HK", l.getData().get(0).getRefPrice()));
+                                productCrawler.setEurPrice(getRefPrice("zh_HK", l.getData().get(0).getRefPrice()));
                                 //同一个系列的图片放到相同的图片
-                                product.setImg(Joiner.on("|").join(img));
-                                product.setClassification(listData.getTitle());
-                                product.setBrand("chanel");
-                                productList.add(product);
+                                productCrawler.setImg(Joiner.on("|").join(img));
+                                productCrawler.setClassification(listData.getTitle());
+                                productCrawler.setBrand("chanel");
+                                productCrawlerList.add(productCrawler);
                             }
 
                         }
                     }
-                    page.putField("productList", productList);
+                    page.putField("productCrawlerList", productCrawlerList);
                 } else {
                     String price = null;
                     String ref = null;
@@ -224,7 +224,7 @@ public class ChannelCrawler extends BaseCrawler {
                     } catch (Exception e) {
                         logger.info("color 出现问题" + e.toString());
                     }
-                    Product p = new Product();
+                    ProductCrawler p = new ProductCrawler();
                     p.setBrand("chanel");
                     p.setClassification(classification);
                     p.setColor(color);
@@ -235,7 +235,7 @@ public class ChannelCrawler extends BaseCrawler {
                     p.setIntroduction(desc);
                     p.setRef(ref);
                     p.setSize(size);
-                    p.setEnPrice(price);
+                    p.setEurPrice(price);
                     p.setTags(tags);
                     page.putField("product", p);
                 }

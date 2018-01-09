@@ -1,7 +1,7 @@
 package pipeline;
 
 import common.WebDriverPool;
-import core.model.Product;
+import core.model.ProductCrawler;
 import org.apache.logging.log4j.util.Strings;
 import us.codecraft.webmagic.ResultItems;
 import us.codecraft.webmagic.Task;
@@ -39,47 +39,47 @@ public class CrawlerPipeline implements Pipeline {
 
     @Override
     public void process(ResultItems resultItems, Task task) {
-        Product product = resultItems.get("product");
-        List<Product> productList = resultItems.get("productList");
-        if (product != null && !"".equals(product.getName())) {
-            this.dataInput(product);
+        ProductCrawler productCrawler = resultItems.get("productCrawler");
+        List<ProductCrawler> productCrawlerList = resultItems.get("productCrawlerList");
+        if (productCrawler != null && !"".equals(productCrawler.getName())) {
+            this.dataInput(productCrawler);
         }
 
-        if (Objects.nonNull(productList)) {
+        if (Objects.nonNull(productCrawlerList)) {
 
-            for (Product p : productList) {
+            for (ProductCrawler p : productCrawlerList) {
                 this.dataInput(p);
             }
         }
     }
 
 
-    private void dataInput(Product product) {
-        Product productFromDb = Product.dao.findByCode(product.getRef());
-        if (productFromDb == null) {
+    private void dataInput(ProductCrawler productCrawler) {
+        ProductCrawler productCrawlerFromDb = ProductCrawler.dao.findByCode(productCrawler.getRef());
+        if (productCrawlerFromDb == null) {
             //没有该商品 添加
-            boolean b = product.save();
+            boolean b = productCrawler.save();
             if (b) {
-                logger.info("成功采集【" + product.getName().trim() + "】");
+                logger.info("成功采集【" + productCrawler.getName().trim() + "】");
             }
         } else {
 //                //更新价格
-            if (!Strings.isBlank(product.getPrice())) {
-                productFromDb.setPrice(product.getPrice());
+            if (!Strings.isBlank(productCrawler.getPrice())) {
+                productCrawlerFromDb.setPrice(productCrawler.getPrice());
             }
-            if (!Strings.isBlank(product.getHkPrice())) {
-                productFromDb.setHkPrice(product.getHkPrice());
+            if (!Strings.isBlank(productCrawler.getHkPrice())) {
+                productCrawlerFromDb.setHkPrice(productCrawler.getHkPrice());
             }
-            if (!Strings.isBlank(product.getEnPrice())) {
-                productFromDb.setEnPrice(product.getEnPrice());
+            if (!Strings.isBlank(productCrawler.getEnPrice())) {
+                productCrawlerFromDb.setEnPrice(productCrawler.getEnPrice());
             }
-            if (!Strings.isBlank(product.getEurPrice())) {
-                productFromDb.setEurPrice(product.getEurPrice());
+            if (!Strings.isBlank(productCrawler.getEurPrice())) {
+                productCrawlerFromDb.setEurPrice(productCrawler.getEurPrice());
             }
             //updata
-            boolean b = productFromDb.update();
+            boolean b = productCrawlerFromDb.update();
             if (b) {
-                logger.info("更新【" + productFromDb.getName() + "】成功！！！");
+                logger.info("更新【" + productCrawlerFromDb.getName() + "】成功！！！");
             }
         }
     }

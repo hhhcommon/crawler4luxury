@@ -6,7 +6,7 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
 import common.HttpRequestUtil;
 import common.RegexUtil;
-import core.model.Product;
+import core.model.ProductCrawler;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
@@ -140,7 +140,7 @@ public class YslCrawler extends BaseCrawler {
             } catch (Exception e) {
                 logger.info("请求英国网址出错 错误原因" + e.toString());
             }
-            Product p = new Product();
+            ProductCrawler p = new ProductCrawler();
             p.setBrand("valentino");
             p.setClassification(classification);
             p.setImg(Joiner.on("|").join(imgList));

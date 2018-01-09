@@ -4,8 +4,7 @@ import base.BaseCrawler;
 import com.google.common.base.Joiner;
 import common.DbUtil;
 import common.RegexUtil;
-import core.model.Product;
-import componentImpl.WebDriverComponent;
+import core.model.ProductCrawler;
 import org.apache.logging.log4j.util.Strings;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -111,7 +110,7 @@ public class MiumiuCrawler extends BaseCrawler {
                 }
 
             }
-            Product p = new Product();
+            ProductCrawler p = new ProductCrawler();
             p.setBrand("miumiu");
             p.setClassification(classification);
             List<String> img = RegexUtil.matchGroup("\"image_\\d+\" : \"(.*?)\"", page.getHtml().toString());

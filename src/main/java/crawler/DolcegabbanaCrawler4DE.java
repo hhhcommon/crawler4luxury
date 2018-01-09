@@ -4,8 +4,7 @@ import base.BaseCrawler;
 import com.google.common.base.Joiner;
 import common.DbUtil;
 import common.JsonParseUtil;
-import core.model.Product;
-import download.MseleniumDownloader;
+import core.model.ProductCrawler;
 import download.SeleniumDownloader;
 import io.netty.util.internal.ObjectUtil;
 import org.apache.logging.log4j.util.Strings;
@@ -129,7 +128,7 @@ public class DolcegabbanaCrawler4DE extends BaseCrawler {
                 String img = JsonParseUtil.getString(json, "url");
                 imgList.add(img);
             }
-            Product p = new Product();
+            ProductCrawler p = new ProductCrawler();
             p.setBrand("dolcegabbana");
             p.setColor(color);
             p.setImg(Joiner.on("|").join(imgList));

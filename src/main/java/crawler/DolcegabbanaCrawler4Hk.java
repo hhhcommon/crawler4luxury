@@ -4,7 +4,7 @@ import base.BaseCrawler;
 import com.google.common.base.Joiner;
 import common.DbUtil;
 import common.JsonParseUtil;
-import core.model.Product;
+import core.model.ProductCrawler;
 import io.netty.util.internal.ObjectUtil;
 import org.apache.logging.log4j.util.Strings;
 import org.jsoup.nodes.Document;
@@ -15,11 +15,9 @@ import us.codecraft.webmagic.Page;
 import us.codecraft.webmagic.Site;
 import us.codecraft.webmagic.Spider;
 import us.codecraft.webmagic.downloader.HttpClientDownloader;
-import us.codecraft.webmagic.monitor.SpiderMonitor;
 import us.codecraft.webmagic.proxy.Proxy;
 import us.codecraft.webmagic.proxy.SimpleProxyProvider;
 
-import javax.management.JMException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -123,7 +121,7 @@ public class DolcegabbanaCrawler4Hk extends BaseCrawler {
                 String img = JsonParseUtil.getString(json, "url");
                 imgList.add(img);
             }
-            Product p = new Product();
+            ProductCrawler p = new ProductCrawler();
             p.setBrand("dolcegabbana");
             p.setColor(color);
             p.setImg(Joiner.on("|").join(imgList));

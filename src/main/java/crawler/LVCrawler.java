@@ -2,7 +2,7 @@ package crawler;
 
 import base.BaseCrawler;
 import com.google.common.base.Joiner;
-import core.model.Product;
+import core.model.ProductCrawler;
 import org.apache.logging.log4j.util.Strings;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -116,7 +116,7 @@ public class LVCrawler extends BaseCrawler {
                     imgLs.add(img);
                 }
             }
-            Product p = new Product();
+            ProductCrawler p = new ProductCrawler();
             p.setBrand("lv");
             p.setClassification(classification);
             p.setImg(Joiner.on("|").join(imgLs));

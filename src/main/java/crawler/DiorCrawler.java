@@ -1,17 +1,10 @@
 package crawler;
 
 import base.BaseCrawler;
-import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
 import common.DbUtil;
-import common.HttpRequestUtil;
-import common.JsonParseUtil;
 import common.RegexUtil;
-import core.model.Product;
-import io.netty.util.internal.ObjectUtil;
-import model.DiorJson;
-import org.apache.commons.lang3.StringEscapeUtils;
-import org.jsoup.Jsoup;
+import core.model.ProductCrawler;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
@@ -20,20 +13,18 @@ import us.codecraft.webmagic.Page;
 import us.codecraft.webmagic.Site;
 import us.codecraft.webmagic.Spider;
 import us.codecraft.webmagic.monitor.SpiderMonitor;
-import us.codecraft.webmagic.scheduler.RedisScheduler;
-import us.codecraft.webmagic.selector.Html;
 
 import javax.management.JMException;
-import javax.swing.text.html.HTML;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.logging.Logger;
 
 /**
  * @Author: yang
  * @Date: 2017/12/7.11:17
  * @Desc: DiorCrawler
+ * <p>
+ * dior 亚洲 好像无法网上购买 只能 店里购买
  */
 public class DiorCrawler extends BaseCrawler {
 
@@ -53,7 +44,7 @@ public class DiorCrawler extends BaseCrawler {
 
     public static void main(String[] args) {
         DbUtil.init();
-        new DiorCrawler(1).run();
+        new DiorCrawler(5).run();
     }
 
     @Override
@@ -123,38 +114,67 @@ public class DiorCrawler extends BaseCrawler {
             }
         }
         if (deepUrls.contains(page.getUrl().toString())) {
-            Product product = new Product();
+            ProductCrawler productCrawler = new ProductCrawler();
             String reg = "\"productPrice\":\"(.*?)\",";
             //获取价格
             String price = RegexUtil.getDataByRegex(reg, document.outerHtml());
+            //商品销售状态
+            String statusLabel = document.select("p[class=status-label]").text();
+
             if (page.getUrl().toString().contains("zh_hk")) {
                 //香港价格
-                product.setLanguage("zh_hk");
-                product.setHkPrice(price);
+                productCrawler.setLanguage("zh_hk");
+                if (Strings.isNullOrEmpty(statusLabel)) {
+                    productCrawler.setHkPrice(price);
+                } else {
+                    productCrawler.setHkPrice(statusLabel);
+                }
+
             }
             if (page.getUrl().toString().contains("zh_cn")) {
-                product.setLanguage("zh_CN");
-                product.setPrice(price);
+                productCrawler.setLanguage("zh_CN");
+                if (Strings.isNullOrEmpty(statusLabel)) {
+                    productCrawler.setPrice(price);
+                } else {
+                    productCrawler.setPrice(statusLabel);
+                }
             }
             if (page.getUrl().toString().contains("de_de")) {
-                product.setLanguage("de_de");
-                product.setEurPrice(price);
+                productCrawler.setLanguage("de_de");
+                if (Strings.isNullOrEmpty(statusLabel)) {
+                    productCrawler.setEurPrice(price);
+                } else {
+                    productCrawler.setEurPrice(statusLabel);
+                }
             }
             if (page.getUrl().toString().contains("en_gb")) {
-                product.setLanguage("en_gb");
-                product.setEnPrice(price);
+                productCrawler.setLanguage("en_gb");
+                if (Strings.isNullOrEmpty(statusLabel)) {
+                    productCrawler.setEnPrice(price);
+                } else {
+                    productCrawler.setEnPrice(statusLabel);
+                }
             }
+            //商品名
             String name = document.select("meta[name=gsa-subtitle]").attr("content");
+            //唯一码
             String ref = document.select("meta[name=gsa-productcode]").attr("content");
-            String desc = document.select("div[class=product-description-content]").text();
+            //描述
+            String desc = document.select("div[class=productCrawler-description-content]").text();
+            //照片
             String img = document.select("meta[name=gsa-image]").attr("content");
-            product.setBrand("dior");
-            product.setUrl(page.getUrl().toString());
-            product.setName(name);
-            product.setIntroduction(desc);
-            product.setImg(img);
-            product.setRef(ref);
-            page.putField("product", product);
+            //商品类别
+            String classf = document.select("meta[name=gsa-univers-label]").attr("content") + "-" + document.select("meta[name=gsa-title]").attr("content");
+            productCrawler.setClassification(classf);
+            productCrawler.setBrand("dior");
+            productCrawler.setUrl(page.getUrl().toString());
+            productCrawler.setName(name);
+            productCrawler.setIntroduction(desc);
+            productCrawler.setTags(statusLabel);
+            productCrawler.setImg(img);
+            productCrawler.setRef(ref);
+            logger.info("商品信息" + productCrawler.toString());
+            page.putField("productCrawler", productCrawler);
         }
     }
 

@@ -2,11 +2,8 @@ package crawler;
 
 import base.BaseCrawler;
 import com.google.common.base.Joiner;
-import com.google.common.base.Strings;
 import common.DbUtil;
-import common.HttpRequestUtil;
-import common.RegexUtil;
-import core.model.Product;
+import core.model.ProductCrawler;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -22,7 +19,6 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
 
 /**
@@ -138,7 +134,7 @@ public class PradaCrawler extends BaseCrawler {
             }
             String priceInfo = document.select("p[class=current-price]").text();
             String mate = document.select("div[class=pdp-tab-longdesc]").text();
-            Product p = new Product();
+            ProductCrawler p = new ProductCrawler();
             p.setBrand("prada");
             Elements img = document.select("div[class=row pdp-editorial-2 box-spacer-small hidden-sm hidden-xs] img");
             ArrayList list = new ArrayList();
