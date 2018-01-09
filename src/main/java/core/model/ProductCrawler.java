@@ -32,7 +32,7 @@ public class ProductCrawler extends BaseProductCrawler<ProductCrawler> {
      * 通过商品的code 找到商品
      */
     public ProductCrawler findByCode(String code) {
-        String sql = "SELECT * FROM productCrawler WHERE  ref= ? ";
+        String sql = "SELECT * FROM product_crawler WHERE  ref= ? ";
         ProductCrawler productCrawler = dao.findFirst(sql, code);
         if (productCrawler != null) {
             return productCrawler;
