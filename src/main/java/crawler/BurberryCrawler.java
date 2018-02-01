@@ -1,13 +1,13 @@
 package crawler;
 
 
-import base.BaseCrawler;
-import com.alibaba.fastjson.JSON;
+import absCompone.BaseCrawler;
 import com.google.common.base.Joiner;
+import common.DbUtil;
 import common.HttpRequestUtil;
 import common.RegexUtil;
 import core.model.ProductCrawler;
-import model.BurBerryItem;
+import org.assertj.core.util.Strings;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
@@ -16,69 +16,45 @@ import us.codecraft.webmagic.Page;
 import us.codecraft.webmagic.Site;
 import us.codecraft.webmagic.Spider;
 import us.codecraft.webmagic.monitor.SpiderMonitor;
+import us.codecraft.webmagic.selector.Html;
 
 import javax.management.JMException;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 /**
  * @Author cyy
  * @Date 2017/12/15 18:35
  * @Description BurberryCrawler is ok
+ * 跑一次 就能直接把所有的价格全部显示出来
+ * 先跑中文网站的 然后其他国家的网站可以一起跑
  */
 public class BurberryCrawler extends BaseCrawler {
-    private static String senced = "https://cn.burberry.com/service/\\w+/\\w+/\\w+/.*?.=\\d+";
-
-    private static String reg = "https://cn.burberry.com/.*p\\d+";
-
+    //用链接式的
+    private static List<String> urls = new LinkedList<>();
 
     public BurberryCrawler(int crawlPath) {
         super(crawlPath);
     }
 
     public static void main(String[] args) {
-        String p = "¥4,830.00";
-        System.out.println(p.split("¥")[1]);
+        DbUtil.init();
+        new BurberryCrawler(1).run();
     }
 
     @Override
     public void run() {
         logger.info("============ BurberryCrawler Crawler start=============");
-        List<String> urls = new ArrayList<>();
-        /**
-         * 女士的
-         */
-        urls.add("https://cn.burberry.com/service/shelf/women/sale/all-sale/coats/?_=1512464008454");
-        urls.add("https://cn.burberry.com/service/shelf/women/sale/all-sale/jackets/?_=1512464008455");
-        urls.add("https://cn.burberry.com/service/shelf/women/sale/all-sale/dresses/?_=1512464008456");
-        urls.add("https://cn.burberry.com/service/shelf/women/sale/all-sale/knitwear-sweatshirts/?_=1512464008457");
-        urls.add("https://cn.burberry.com/service/shelf/women/sale/all-sale/shirts-tops/?_=1512464008458");
-        urls.add("https://cn.burberry.com/service/shelf/women/sale/all-sale/skirts-trousers/?_=1512464008459");
-        urls.add("https://cn.burberry.com/service/shelf/women/sale/all-sale/ponchos-capes/?_=1512464008460");
-        urls.add("https://cn.burberry.com/service/shelf/women/sale/all-sale/bags/?_=1512464008461");
-        urls.add("https://cn.burberry.com/service/shelf/women/sale/all-sale/shoes/?_=1512464008462");
-        urls.add("https://cn.burberry.com/service/shelf/women/sale/all-sale/scarves/?_=1512464008463");
-        urls.add("https://cn.burberry.com/service/shelf/women/sale/all-sale/wallets/?_=1512464008464");
-        urls.add("https://cn.burberry.com/service/shelf/women/sale/all-sale/small-accessories/?_=1512464008465");
-        urls.add("https://cn.burberry.com/service/shelf/women/sale/all-sale/swimwear/?_=1512464008465");
 
-        /**
-         * 男士的
-         */
-        urls.add("https://cn.burberry.com/service/shelf/men/sale/all-sale/coats/?_=1512464406668");
-        urls.add("https://cn.burberry.com/service/shelf/men/sale/all-sale/jackets/?_=1512464406669");
-        urls.add("https://cn.burberry.com/service/shelf/men/sale/all-sale/suits-blazers/?_=1512464406670");
-        urls.add("https://cn.burberry.com/service/shelf/men/sale/all-sale/casual-shirts/?_=1512464406671");
-        urls.add("https://cn.burberry.com/service/shelf/men/sale/all-sale/formal-shirts/?_=1512464406672");
-        urls.add("https://cn.burberry.com/service/shelf/men/sale/all-sale/knitwear-sweatshirts/?_=1512464406673");
-        urls.add("https://cn.burberry.com/service/shelf/men/sale/all-sale/polos-t-shirts/?_=1512464406674");
-        urls.add("https://cn.burberry.com/service/shelf/men/sale/all-sale/jeans-trousers/?_=1512464406675");
-        urls.add("https://cn.burberry.com/service/shelf/men/sale/all-sale/jeans-trousers/?_=1512464406675");
-        urls.add("https://cn.burberry.com/service/shelf/men/sale/all-sale/scarves/?_=1512464406676");
-        urls.add("https://cn.burberry.com/service/shelf/men/sale/all-sale/wallets/?_=1512464406677");
-        urls.add("https://cn.burberry.com/service/shelf/men/sale/all-sale/ties/?_=1512464406678");
-        urls.add("https://cn.burberry.com/service/shelf/men/sale/all-sale/shoes/?_=1512464406679");
-        urls.add("https://cn.burberry.com/service/shelf/men/sale/all-sale/swimwear/?_=1512464008465");
+        //中国
+        urls.add("https://cn.burberry.com/mens-trench-coats/");
+        //德国
+//        urls.add("https://de.burberry.com/damen/");
+//        //英国
+//        urls.add("https://uk.burberry.com/men/");
+//        //香港
+//        urls.add("https://hk.burberry.com/men/");
 
         spider = Spider.create(new BurberryCrawler(threadDept))
                 .addUrl((String[]) urls.toArray(new String[urls.size()]))
@@ -95,27 +71,102 @@ public class BurberryCrawler extends BaseCrawler {
     @Override
     public void process(Page page) {
         logger.info("process>>>>>>>>>>>" + page.getUrl());
-        try {
-            if (page.getUrl().regex(senced).match()) {
-                List<BurBerryItem> burberry = JSON.parseArray(RegexUtil.getDataByRegex("<body>(.*?)</body>", page.getHtml().css("body").toString()), BurBerryItem.class);
-                if (burberry != null) {
-                    for (BurBerryItem burBerryItem : burberry) {
-                        String link = "https://cn.burberry.com" + burBerryItem.getLink();
-                        logger.info("加入采集队列>>>>>" + link);
-                        page.addTargetRequest(link);
+        Document document = page.getHtml().getDocument();
+        //获取 navlist
+        if (urls.contains(page.getUrl().toString())) {
+            if (page.getUrl().toString().contains("https://cn.burberry.com")) {
+                Elements elementsNavs = document.select("div[class=nav-level3_item nav-level3_item-empty]");
+                for (Element element : elementsNavs) {
+                    String link = element.getElementsByTag("a").attr("href");
+                    if (page.getUrl().toString().contains("https://cn.burberry.com")) {
+                        link = "https://cn.burberry.com" + link;
+                        if (RegexUtil.checkHttp(link)) {
+                            logger.info("添加到导航采集队列 " + link);
+                            navList.add(link);
+                        }
+                    }
+                }
+            } else {
+                Elements elements = document.select("li[class=center-nav-bar-element]");
+                for (Element element : elements) {
+                    String link = element.getElementsByTag("a").attr("href");
+                    if (page.getUrl().toString().contains("https://de.burberry.com")) {
+                        link = "https://de.burberry.com" + link;
+                        if (RegexUtil.checkHttp(link)) {
+                            logger.info("添加到导航采集队列 " + link);
+                            navList.add(link);
+                        }
+                    }
+                    if (page.getUrl().toString().contains("https://uk.burberry.com")) {
+                        link = "https://uk.burberry.com" + link;
+                        if (RegexUtil.checkHttp(link)) {
+                            logger.info("添加到导航采集队列 " + link);
+                            navList.add(link);
+                        }
+                    }
+                    if (page.getUrl().toString().contains("https://hk.burberry.com")) {
+                        link = "https://hk.burberry.com" + link;
+                        if (RegexUtil.checkHttp(link)) {
+                            logger.info("添加到导航采集队列 " + link);
+                            navList.add(link);
+                        }
+
                     }
                 }
             }
-            if (page.getUrl().regex(reg).match()) {// 处理页
+            logger.info("navList 个数 " + navList.size());
+            page.addTargetRequests(navList);
+        }
+        //获取detail 页面
+        if (navList.contains(page.getUrl().toString())) {
+            if (page.getUrl().toString().contains("https://cn.burberry.com")) {
+                Elements detailEls = document.select("a[class=product_link]");
+                for (Element element : detailEls) {
+                    String link = element.attr("href");
+                    link = "https://cn.burberry.com" + link;
+                    if (RegexUtil.checkHttp(link)) {
+                        logger.info("添加到采集队列 " + link);
+                        detailList.add(link);
+                    }
+                }
+            } else {
+                Elements detailEls = document.select("a[class=js-asset-content-link asset-content-link js-product-internal-link ga-product-item esiLink]");
+                for (Element element : detailEls) {
+                    String link = element.getElementsByTag("a").attr("href");
+                    if (page.getUrl().toString().contains("https://uk.burberry.com")) {
+                        link = "https://uk.burberry.com" + link;
+                        if (RegexUtil.checkHttp(link)) {
+                            logger.info("添加到采集队列 " + link);
+                            detailList.add(link);
+                        }
+                    } else if (page.getUrl().toString().contains("https://hk.burberry.com")) {
+                        link = "https://hk.burberry.com" + link;
+                        if (RegexUtil.checkHttp(link)) {
+                            logger.info("添加到采集队列 " + link);
+                            detailList.add(link);
+                        }
+                    } else if (page.getUrl().toString().contains("https://de.burberry.com")) {
+                        link = "https://de.burberry.com" + link;
+                        if (RegexUtil.checkHttp(link)) {
+                            logger.info("添加到采集队列 " + link);
+                            detailList.add(link);
+                        }
+                    }
+                }
+            }
+            page.addTargetRequests(detailList);
+            logger.info("detailList 的个数 " + detailList.size());
+        }
+        if (detailList.contains(page.getUrl().toString())) {
+            try {
                 ProductCrawler productCrawler = analyticalData(page);
                 if (productCrawler != null) {
                     page.putField("productCrawler", productCrawler);
                 }
+            } catch (Exception e) {
+                logger.info("异常信息" + e.toString());
+                logger.info("转化json失败>>>>>>>" + page.getUrl());
             }
-
-        } catch (Exception e) {
-            logger.info("异常信息" + e.toString());
-            logger.info("转化json失败>>>>>>>" + page.getUrl());
         }
     }
 
@@ -128,84 +179,150 @@ public class BurberryCrawler extends BaseCrawler {
     public ProductCrawler analyticalData(Page page) {
         ProductCrawler productCrawler = new ProductCrawler();
         Document document = page.getHtml().getDocument();
-        productCrawler.setBrand("burberry");
-        productCrawler.setLanguage("zh_CN");
-        productCrawler.setUrl(page.getUrl().toString());
-        productCrawler.setName(document.getElementsByClass("productCrawler-purchase_name").first().text());
-        List<String> temp = new ArrayList<String>();
-        //获取图片
-        Elements imgEl = document.getElementsByClass("productCrawler-carousel_item");
-        if (imgEl != null && imgEl.size() > 0) {
-            for (Element element : imgEl) {
-                String img = element.getElementsByTag("img").attr("src");
-                temp.add(img);
-            }
-        }
-        productCrawler.setImg(Joiner.on("|").join(temp));
-        try {
-            productCrawler.setPrice(document.getElementsByClass("productCrawler-purchase_price").first().text().split("¥")[1]);
-        } catch (Exception e) {
-            logger.info("--------------价格转化 发生错误----------------");
-        }
-        productCrawler.setRef(RegexUtil.getDataByRegex("(\\d+)", document.getElementsByClass("productCrawler-purchase_item-number").first().text()));
-        productCrawler.setIntroduction(document.getElementsByClass("accordion-tab_content").first().text());
-
-        try {
-            Elements sizeEl = document.select("label.productCrawler-purchase_option");
-
-            if (sizeEl != null && sizeEl.size() > 0) {
-                List<String> list = new ArrayList<String>();
-                for (Element element : sizeEl) {
-                    list.add(element.text());
+        if (page.getUrl().toString().contains("https://cn.burberry.com")) {
+            productCrawler.setBrand("burberry");
+            productCrawler.setLanguage("zh_CN");
+            productCrawler.setUrl(page.getUrl().toString());
+            productCrawler.setName(document.getElementsByClass("product-purchase_name").text());
+            List<String> temp = new ArrayList<String>();
+            //获取图片
+            Elements imgEl = document.select("div[class=product-carousel_item] picture");
+            if (imgEl != null && imgEl.size() > 0) {
+                for (Element element : imgEl) {
+                    String alt = element.getElementsByTag("img").attr("alt");
+                    if (alt != null && !"".equals(alt)) {
+                        String img = element.getElementsByTag("img").attr("data-src");
+                        if (!Strings.isNullOrEmpty(img)) {
+                            temp.add(img);
+                        }
+                    }
                 }
-                productCrawler.setSize(Joiner.on("|").join(list));
-
+            }
+            productCrawler.setImg(Joiner.on("|").join(temp));
+            try {
+                productCrawler.setPrice(document.select("meta[name=og:price:amount]").attr("content"));
+            } catch (Exception e) {
+                logger.info("--------------价格转化 发生错误----------------");
+            }
+            productCrawler.setRef(RegexUtil.getDataByRegex("(\\d+)", page.getUrl().toString()));
+            productCrawler.setIntroduction(document.getElementsByClass("accordion-tab_content").first().text());
+            //类别
+            try {
+                String classF = document.select("div[class=nav-level1_item nav-level1_item-selected]").first().getElementsByTag("a").first().text() + "-";
+                classF += document.select("div[class=nav-level2_item nav-level2_item-selected]").first().getElementsByTag("a").first().text() + "-";
+                classF += document.select("div[class=nav-level3_item nav-level3_item-selected nav-level3_item-empty]").first().getElementsByTag("a").first().text();
+                productCrawler.setClassification(classF);
+            } catch (Exception e) {
+                logger.info("类别获取失败");
+                //类别获取失败的是彩妆
+                productCrawler.setClassification("彩妆");
+                productCrawler.setRef(document.select("input[name=product]").attr("value"));
             }
 
-            Element colorEl = document.select("div.productCrawler-purchase_options").first();
-            if (colorEl != null) {
-                List<String> list = new ArrayList<String>();
-                Elements colors = colorEl.getElementsByTag("span");
-                for (Element element : colors) {
-                    String color = element.getElementsByTag("a").first().getElementsByTag("img").attr("title");
-                    list.add(color);
+            try {
+                Elements sizeEl = document.select("label.productCrawler-purchase_option");
+
+                if (sizeEl != null && sizeEl.size() > 0) {
+                    List<String> list = new ArrayList<String>();
+                    for (Element element : sizeEl) {
+                        list.add(element.text());
+                    }
+                    productCrawler.setSize(Joiner.on("|").join(list));
+
                 }
-                productCrawler.setColor(Joiner.on("|").join(list));
+
+                Element colorEl = document.select("div.productCrawler-purchase_options").first();
+                if (colorEl != null) {
+                    List<String> list = new ArrayList<String>();
+                    Elements colors = colorEl.getElementsByTag("span");
+                    for (Element element : colors) {
+                        String color = element.getElementsByTag("a").first().getElementsByTag("img").attr("title");
+                        list.add(color);
+                    }
+                    productCrawler.setColor(Joiner.on("|").join(list));
+                } else {
+                    String color = document.select("span.product-purchase_selected").first().text();
+                    productCrawler.setColor(color);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+
+            // 获取香港价格
+            String hkUrl = productCrawler.getUrl().replace("cn", "hk");
+            try {
+                String html = HttpRequestUtil.sendGet(hkUrl);
+                productCrawler
+                        .setHkPrice(RegexUtil.getDataByRegex("<meta property=\"og:price:amount\" content=\"(.*?)\"/>", html));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            // 获取德国价格
+
+            String deUrl = productCrawler.getUrl().replace("cn", "de");
+            try {
+                String html = HttpRequestUtil.sendGet(deUrl);
+                productCrawler
+                        .setEurPrice(RegexUtil.getDataByRegex("<meta property=\"og:price:amount\" content=\"(.*?)\"/>", html));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            // 获取英国价格
+
+            String enUrl = productCrawler.getUrl().replace("cn", "uk");
+            try {
+                String html = HttpRequestUtil.sendGet(enUrl);
+                productCrawler.setEnPrice(RegexUtil.getDataByRegex("<meta property=\"og:price:amount\" content=\"(.*?)\"/>", html));
+                String engName = null;
+                try {
+                    engName = new Html(html).getDocument().select("meta[property=og:title]").attr("content").split("\\|")[0];
+                } catch (Exception e) {
+                }
+                productCrawler.setEngName(engName);
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
-
-        // 获取香港价格
-        String hkUrl = productCrawler.getUrl().replace("cn", "hk");
-        try {
-            String html = HttpRequestUtil.sendGet(hkUrl);
-            productCrawler
-                    .setHkPrice(RegexUtil.getDataByRegex("<meta property=\"og:price:amount\" content=\"(.*?)\"/>", html));
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        // 获取德国价格
-
-        String deUrl = productCrawler.getUrl().replace("cn", "de");
-        try {
-            String html = HttpRequestUtil.sendGet(deUrl);
-            productCrawler
-                    .setEurPrice(RegexUtil.getDataByRegex("<meta property=\"og:price:amount\" content=\"(.*?)\"/>", html));
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        // 获取英国价格
-
-        String enUrl = productCrawler.getUrl().replace("cn", "uk");
-        try {
-            String html = HttpRequestUtil.sendGet(enUrl);
-            productCrawler
-                    .setEnPrice(RegexUtil.getDataByRegex("<meta property=\"og:price:amount\" content=\"(.*?)\"/>", html));
-        } catch (Exception e) {
-            e.printStackTrace();
+        //分析国外的网站================================================================================================
+        else {
+            productCrawler.setBrand("burberry");
+            productCrawler.setUrl(page.getUrl().toString());
+            try {
+                productCrawler.setName(document.getElementsByClass("product-title transaction-title ta-transaction-title type-h6").first().text());
+                productCrawler.setEngName(document.getElementsByClass("product-title transaction-title ta-transaction-title type-h6").first().text());
+            } catch (Exception e) {
+                logger.info("解析【name】字段发生错误！");
+            }
+            List<String> temp = new ArrayList<String>();
+            //获取图片
+            Elements imgEl = document.getElementsByClass("asset-container js-asset-container gallery-asset-item-container");
+            if (imgEl != null && imgEl.size() > 0) {
+                for (Element element : imgEl) {
+                    String img = element.attr("data-src");
+                    if (!Strings.isNullOrEmpty(img)) {
+                        temp.add(img.split("\\?")[0]);
+                    }
+                }
+            }
+            productCrawler.setImg(Joiner.on("|").join(temp));
+            try {
+                if (page.getUrl().toString().contains("https://uk.burberry.com")) {
+                    productCrawler.setLanguage("en_gb");
+                    Elements elements = document.select("span[class=price-amount ta-price-amount price-amount-without-monogramming]");
+                    if (elements.size() == 2) {
+                        productCrawler.setEnPrice(elements.get(1).text());
+                    } else {
+                        productCrawler.setEnPrice(elements.get(0).text());
+                    }
+                }
+            } catch (Exception e) {
+                logger.info("--------------价格转化 发生错误----------------");
+            }
+            productCrawler.setRef(RegexUtil.getDataByRegex("(\\d+)", page.getUrl().toString()));
+            productCrawler.setIntroduction(document.getElementsByClass("cell-text ta-cell-text").text());
         }
         return productCrawler;
     }
@@ -214,12 +331,9 @@ public class BurberryCrawler extends BaseCrawler {
     @Override
     public Site getSite() {
         site = Site.me()
-                .setDomain("cn.burberry.com")
+//                .setDomain("de.burberry.com")
                 .setUserAgent("Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.9 Safari/537.36")
                 .addHeader("Accept", "application/json, text/javascript, */*; q=0.01")
-                .addHeader("Accept-Encoding", "gzip, deflate, br")
-                .addHeader("X-Requested-With", "XMLHttpRequest")
-                .addHeader("x-newrelic-id", "VwIOVFFUGwIJVldQBAQA")
                 .addHeader("referer", "https://cn.burberry.com/womens-new-arrivals-new-in/")
                 .addHeader("x-csrf-token", getCode())
                 .setRetryTimes(3)
@@ -232,6 +346,7 @@ public class BurberryCrawler extends BaseCrawler {
      *
      * @return
      */
+
     private String getCode() {
         String html = HttpRequestUtil.sendGet("https://cn.burberry.com/short-sleeve-soutache-lace-tulle-dress-p45458641");
         return RegexUtil.getDataByRegex("<input class=\"csrf-token\" type=\"hidden\" value=\"(.*?)\">", html);

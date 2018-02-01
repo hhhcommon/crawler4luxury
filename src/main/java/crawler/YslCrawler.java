@@ -1,11 +1,12 @@
 package crawler;
 
-import base.BaseCrawler;
+import absCompone.BaseCrawler;
 import com.github.kevinsawicki.http.HttpRequest;
 import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
 import common.HttpRequestUtil;
 import common.RegexUtil;
+import componentImpl.WebDriverManager;
 import core.model.ProductCrawler;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -55,7 +56,7 @@ public class YslCrawler extends BaseCrawler {
     @Override
     public void process(Page page) {
         logger.info("process start>>>>" + page.getUrl().toString());
-        init();
+        webDriver = WebDriverManager.getInstall().create(3, webDriver);
         Document document = page.getHtml().getDocument();
         if (urls.contains(page.getUrl().toString())) {
             Elements elements = document.select("div[class=level-1] ul li");
@@ -70,7 +71,7 @@ public class YslCrawler extends BaseCrawler {
 
         if (navList.contains(page.getUrl().toString())) {
             logger.info("nav>>>>" + page.getUrl().toString());
-            Document document1 = driverComponent.getNextPager(page, webDriver);
+            Document document1 = WebDriverManager.getInstall().getNextPager(page, webDriver);
             Elements elements = document1.select("article[class=item]");
             for (Element element : elements) {
                 String detailLink = element.getElementsByTag("a").first().attr("href");
@@ -83,7 +84,7 @@ public class YslCrawler extends BaseCrawler {
 
         if (detailList.contains(page.getUrl().toString())) {
             logger.info("detail>>>" + page.getUrl().toString());
-            driverComponent.destoty();
+            WebDriverManager.getInstall().destoty(webDriver);
             String pname = document.select("h1[class=productName]").text();
             String classification = null;
             try {

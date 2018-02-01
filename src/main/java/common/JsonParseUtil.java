@@ -1,7 +1,6 @@
 package common;
 
 
-import base.BaseCrawler;
 import com.alibaba.fastjson.JSON;
 import org.apache.http.util.TextUtils;
 

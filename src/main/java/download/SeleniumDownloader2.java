@@ -1,5 +1,7 @@
 package download;
 
+import common.WebDriverPool;
+import componentImpl.WebDriverManager;
 import org.apache.log4j.Logger;
 import org.openqa.selenium.By;
 import org.openqa.selenium.Cookie;
@@ -15,16 +17,20 @@ import us.codecraft.webmagic.selector.PlainText;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Map;
+import java.util.Objects;
 
 /**
- * @Author: yang
- * @Date: 2017/12/28.10:26
- * @Desc: to do?
+ * 使用Selenium调用浏览器进行渲染。目前仅支持chrome。<br>
+ * 需要下载Selenium driver支持。<br>
+ *
+ * @author code4crafter@gmail.com <br>
+ *         Date: 13-7-26 <br>
+ *         Time: 下午1:37 <br>
  */
-public class MseleniumDownloader implements Downloader, Closeable {
+public class SeleniumDownloader2 implements Downloader, Closeable {
 
-    private volatile WebDriverPool webDriverPool;
 
     private Logger logger = Logger.getLogger(getClass());
 
@@ -32,26 +38,23 @@ public class MseleniumDownloader implements Downloader, Closeable {
 
     private int poolSize = 1;
 
-    private static final String DRIVER_PHANTOMJS = "phantomjs";
+    private ArrayList<String> getNextPagerTextList = new ArrayList<>();
+
+    public void setGetNextPagerTextList(ArrayList<String> getNextPagerTextList) {
+        this.getNextPagerTextList = getNextPagerTextList;
+    }
 
     /**
      * 新建
      *
-     * @param chromeDriverPath chromeDriverPath
+     * @param
      */
-    public MseleniumDownloader(String chromeDriverPath) {
-        System.getProperties().setProperty("webdriver.chrome.driver",
-                chromeDriverPath);
+    public SeleniumDownloader2() {
     }
 
-    /**
-     * Constructor without any filed. Construct PhantomJS browser
-     *
-     * @author bob.li.0718@gmail.com
-     */
-    public MseleniumDownloader() {
-        // System.setProperty("phantomjs.binary.path",
-        // "/Users/Bingo/Downloads/phantomjs-1.9.7-macosx/bin/phantomjs");
+
+    public SeleniumDownloader2(ArrayList<String> strings) {
+        this.getNextPagerTextList = strings;
     }
 
     /**
@@ -60,23 +63,28 @@ public class MseleniumDownloader implements Downloader, Closeable {
      * @param sleepTime sleepTime
      * @return this
      */
-    public MseleniumDownloader setSleepTime(int sleepTime) {
+    public SeleniumDownloader2 setSleepTime(int sleepTime) {
         this.sleepTime = sleepTime;
         return this;
     }
 
     @Override
     public Page download(Request request, Task task) {
-        checkInit();
         WebDriver webDriver;
         try {
-            webDriver = webDriverPool.get();
+            webDriver = WebDriverManager.getInstall().getWebDriverPool(poolSize).get();
         } catch (InterruptedException e) {
             logger.warn("interrupted", e);
             return null;
         }
         logger.info("downloading page " + request.getUrl());
-        webDriver.get(request.getUrl());
+
+        if (Objects.nonNull(getNextPagerTextList) && getNextPagerTextList.size() > 0) {
+            WebDriverManager.getInstall().getNextPager(request.getUrl(), webDriver, getNextPagerTextList);
+        } else {
+            webDriver.get(request.getUrl());
+        }
+
         try {
             Thread.sleep(sleepTime);
         } catch (InterruptedException e) {
@@ -95,7 +103,7 @@ public class MseleniumDownloader implements Downloader, Closeable {
 
 		/*
          * TODO You can add mouse event or other processes
-		 *
+		 * 
 		 * @author: bob.li.0718@gmail.com
 		 */
 
@@ -106,17 +114,10 @@ public class MseleniumDownloader implements Downloader, Closeable {
         page.setHtml(new Html(content, request.getUrl()));
         page.setUrl(new PlainText(request.getUrl()));
         page.setRequest(request);
-        webDriverPool.returnToPool(webDriver);
+        WebDriverManager.getInstall().returnToPool(webDriver);
         return page;
     }
 
-    private void checkInit() {
-        if (webDriverPool == null) {
-            synchronized (this) {
-                webDriverPool = new WebDriverPool(poolSize);
-            }
-        }
-    }
 
     @Override
     public void setThread(int thread) {
@@ -125,6 +126,6 @@ public class MseleniumDownloader implements Downloader, Closeable {
 
     @Override
     public void close() throws IOException {
-        webDriverPool.closeAll();
+        WebDriverManager.getInstall().closeAll();
     }
 }

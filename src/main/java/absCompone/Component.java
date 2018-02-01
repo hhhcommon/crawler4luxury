@@ -1,7 +1,5 @@
 package absCompone;
 
-import base.BaseCrawler;
-
 import java.util.List;
 import java.util.logging.Logger;
 

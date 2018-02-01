@@ -1,7 +1,7 @@
 package componentImpl;
 
 import absCompone.Component;
-import base.BaseCrawler;
+import absCompone.BaseCrawler;
 import io.netty.util.internal.ObjectUtil;
 
 import java.util.ArrayList;

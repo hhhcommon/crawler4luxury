@@ -1,6 +1,6 @@
 package crawler;
 
-import base.BaseCrawler;
+import absCompone.BaseCrawler;
 import com.google.common.base.Joiner;
 import core.model.ProductCrawler;
 import org.apache.logging.log4j.util.Strings;

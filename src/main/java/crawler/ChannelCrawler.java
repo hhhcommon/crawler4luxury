@@ -1,15 +1,10 @@
 package crawler;
 
-import base.BaseCrawler;
-import com.alibaba.fastjson.JSON;
+import absCompone.BaseCrawler;
 import com.google.common.base.Joiner;
-import common.DbUtil;
-import common.HttpRequestUtil;
-import common.JsonParseUtil;
-import common.RegexUtil;
+import common.*;
 import core.model.ProductCrawler;
 import io.netty.util.internal.ObjectUtil;
-import model.ChannelJson;
 import org.apache.logging.log4j.util.Strings;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -19,11 +14,10 @@ import us.codecraft.webmagic.Page;
 import us.codecraft.webmagic.Site;
 import us.codecraft.webmagic.Spider;
 import us.codecraft.webmagic.downloader.HttpClientDownloader;
-import us.codecraft.webmagic.monitor.SpiderMonitor;
 import us.codecraft.webmagic.proxy.Proxy;
 import us.codecraft.webmagic.proxy.SimpleProxyProvider;
+import us.codecraft.webmagic.selector.Html;
 
-import javax.management.JMException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -37,6 +31,8 @@ import java.util.regex.Pattern;
  * <p>
  * 问题： 除了中国 其他的价格 需要采集
  * 解决方案：vpn 需要切换不同国家 用代理模式
+ * 采集方法：
+ * 跑一次 切换下代理 更换下 价格的字段
  */
 public class ChannelCrawler extends BaseCrawler {
 
@@ -49,7 +45,7 @@ public class ChannelCrawler extends BaseCrawler {
 
     public static void main(String[] args) {
         DbUtil.init();
-        new ChannelCrawler(5).run();
+        new ChannelCrawler(3).run();
     }
 
     @Override
@@ -58,19 +54,19 @@ public class ChannelCrawler extends BaseCrawler {
         /**
          * 配置代理
          */
-        HttpClientDownloader httpClientDownloader = new HttpClientDownloader();
-        spider = Spider.create(new ChannelCrawler(threadDept))
-                .addUrl("http://www.chanel.com/zh_CN/fashion.html#products")
-                .addPipeline(CrawlerPipeline.getInstall())
-                .thread(threadDept);
-        httpClientDownloader.setProxyProvider(SimpleProxyProvider.from(new Proxy("127.0.0.1", 1080)));
-        spider.setDownloader(httpClientDownloader);
         try {
-            SpiderMonitor.instance().register(spider);
-        } catch (JMException e) {
+
+            spider = Spider.create(new ChannelCrawler(threadDept))
+                    .addUrl("http://www.chanel.com/zh_CN/fashion.html#products")
+                    .addPipeline(CrawlerPipeline.getInstall())
+                    .thread(threadDept);
+            HttpClientDownloader httpClientDownloader = new HttpClientDownloader();
+            httpClientDownloader.setProxyProvider(SimpleProxyProvider.from(new Proxy("127.0.0.1", 1080)));
+            spider.setDownloader(httpClientDownloader);
+            spider.start();
+        } catch (Exception e) {
             e.printStackTrace();
         }
-        spider.run();
     }
 
     @Override
@@ -86,35 +82,50 @@ public class ChannelCrawler extends BaseCrawler {
                     navList.add(link);
                 }
                 page.addTargetRequests(navList);
+                logger.info("navList size " + navList.size());
             }
         }
         if (navList.contains(page.getUrl().toString())) {
             try {
-                String url = "http://www.chanel.com" + document.select("div.center-collection").first().getElementsByTag("a").first().attr("href");
-                if (!Strings.isBlank(url)) {
-                    logger.info("加入到采集队列 " + url);
-                    detailList.add(url);
-                    page.addTargetRequest(url);
-                }
-            } catch (Exception e) {
                 //各种系列
                 Elements elements = document.getElementsByClass("no-select nav-item");
-                ObjectUtil.checkNotNull(elements, "不需要点击的链接 no-select nav-item ");
-                for (Element element : elements) {
-                    String url = "http://www.chanel.com" + element.getElementsByTag("a").attr("href");
+                if (elements.size() > 0) {
+                    ObjectUtil.checkNotNull(elements, "不需要点击的链接 no-select nav-item ");
+                    for (Element element : elements) {
+                        String url = "http://www.chanel.com" + element.getElementsByTag("a").attr("href");
+                        logger.info("加入到采集队列 " + url);
+                        //如果是这样的 说明他自己就是这个链接 将链接加到详情页
+                        if (!url.equals("http://www.chanel.com#")) {
+                            page.addTargetRequest(url);
+                            detailList.add(url);
+                        }
+                    }
+
+                } else {
+                    String url = "http://www.chanel.com" + document.select("div.center-collection").first().getElementsByTag("a").first().attr("href");
+                    if (!Strings.isBlank(url) && RegexUtil.checkHttp(url)) {
+                        logger.info("加入到采集队列 " + url);
+                        navList.add(url);
+                        detailList.add(url);
+                        page.addTargetRequest(url);
+                    }
+                }
+            } catch (Exception e) {
+                String url = "http://www.chanel.com" + document.select("div.center-collection").first().getElementsByTag("a").first().attr("href");
+                if (!Strings.isBlank(url) && RegexUtil.checkHttp(url)) {
                     logger.info("加入到采集队列 " + url);
-                    page.addTargetRequest(url);
+                    navList.add(url);
                     detailList.add(url);
+                    page.addTargetRequest(url);
                 }
             }
-
+            logger.info("detailList size " + detailList.size());
         }
 
         /*
          获取 每页的各个商品
          */
         if (detailList.contains(page.getUrl().toString())) {
-
             Elements elements = document.select("a.product-link");
             ObjectUtil.checkNotNull(elements, "requestUrlContent elements");
             for (Element element : elements) {
@@ -123,129 +134,101 @@ public class ChannelCrawler extends BaseCrawler {
                 page.addTargetRequest(url);
                 requestUrlFinal.add(url);
             }
-
+            logger.info("requestUrlFinal size " + requestUrlFinal.size());
         }
         if (requestUrlFinal.contains(page.getUrl().toString()) || page.getUrl().regex(reg).match()) {
 
-            String name = document.select("h1[itemprop=name]").first().text();
+            String name = null;
+            try {
+                name = document.select("h1[itemprop=name]").first().text();
+            } catch (Exception e) {
+                logger.info("获取名称错误");
+            }
             List<String> img = new ArrayList<String>();
             Elements elements = document.select("img[class=lazyloaded]");
             String language = "zh_CN";
-            for (Element element : elements) {
-                img.add("http://www.chanel.com" + element.attr("data-src"));
-            }
-
-            try {
-                String json = RegexUtil.getDataByRegex(".\"detailsGridJsonUrl\": \"(.*?)\".", page.getHtml().toString());
-                if (!Objects.isNull(json)) {
-                    String jsonUrl = "http://www.chanel.com" + json;
-                    String html = HttpRequestUtil.sendGet(jsonUrl);
-                    String jsonData = JsonParseUtil.getString(html, page.getUrl().toString().replaceAll("http://www.chanel.com", ""));
-                    ChannelJson channelJsons = JSON.parseObject(jsonData, ChannelJson.class);
-                    String tag = channelJsons.getData().getCollectionLabel();
-                    List<ChannelJson.DataBeanX.DetailsBean.InformationBean> list = channelJsons.getData().getDetails().getInformation();
-                    //高级成衣的附属商品标志
-                    String code = "";
-                    List<ProductCrawler> productCrawlerList = new ArrayList<>();
-                    for (ChannelJson.DataBeanX.DetailsBean.InformationBean listData : list) {
-                        for (ChannelJson.DataBeanX.DetailsBean.InformationBean.DatasBean l : listData.getDatas()) {
-                            if (listData.getTitle().contains("高级成衣")) {
-                                ProductCrawler productCrawler = new ProductCrawler();
-                                productCrawler.setName(l.getTitle());
-                                productCrawler.setColor(l.getColor());
-                                productCrawler.setMaterial(l.getMaterial());
-                                productCrawler.setRef(l.getData().get(0).getRef());
-                                code = l.getData().get(0).getRef();
-                                productCrawler.setLanguage(language);
-                                productCrawler.setUrl(page.getUrl().toString());
-                                productCrawler.setTags(tag);
-                                //请求价格
-                                productCrawler.setEurPrice(getRefPrice("zh_HK", l.getData().get(0).getRefPrice()));
-                                //同一个系列的图片放到相同的图片
-                                productCrawler.setImg(Joiner.on("|").join(img));
-                                productCrawler.setClassification(listData.getTitle());
-                                productCrawler.setBrand("chanel");
-                                productCrawlerList.add(productCrawler);
-                            } else {
-                                ProductCrawler productCrawler = new ProductCrawler();
-                                productCrawler.setName(l.getTitle());
-                                productCrawler.setColor(l.getColor());
-                                productCrawler.setMaterial(l.getMaterial());
-                                productCrawler.setRef(l.getData().get(0).getRef());
-                                productCrawler.setCode(code);
-                                productCrawler.setTags(tag);
-                                productCrawler.setLanguage(language);
-                                productCrawler.setUrl(page.getUrl().toString());
-                                //请求价格
-                                productCrawler.setEurPrice(getRefPrice("zh_HK", l.getData().get(0).getRefPrice()));
-                                //同一个系列的图片放到相同的图片
-                                productCrawler.setImg(Joiner.on("|").join(img));
-                                productCrawler.setClassification(listData.getTitle());
-                                productCrawler.setBrand("chanel");
-                                productCrawlerList.add(productCrawler);
-                            }
-
-                        }
-                    }
-                    page.putField("productCrawlerList", productCrawlerList);
-                } else {
-                    String price = null;
-                    String ref = null;
-                    try {
-                        ref = document.select("div[class=ref info] p").first().text();
-                        price = getRefPrice("zh_CN", replaceBlank(ref.substring(0, 13)));
-                    } catch (Exception e) {
-                        logger.info("获取ref 出现问题" + e.toString());
-                    }
-                    String size = null;
-                    try {
-                        size = RegexUtil.getDataByRegex("<p class=\"size info\">(.*?)</p>", page.getHtml().toString());
-                    } catch (Exception e) {
-                        logger.info("size 出现问题" + e.toString());
-                    }
-                    String classification = "";
-                    List<String> arr = RegexUtil.matchGroup(reg, page.getUrl().toString());
-                    if (arr.size() == 2) {
-                        language = arr.get(0);
-                        classification = arr.get(1);
-                    }
-                    List<String> tagarr = RegexUtil.matchGroup("<span itemprop=\"title\">(.*?)</span>", page.getHtml().toString());
-                    String tags = tagarr.get(2);
-
-                    String desc = null;
-                    try {
-                        desc = document.select("p[class=description info matCol ]").first().getElementsByTag("span").first().text();
-                    } catch (Exception e) {
-                        logger.info("desc 出现问题" + e.toString());
-                    }
-                    String color = null;
-                    try {
-                        color = document.select("div[class=product-scroll-detail-wrapper]").first().getElementsByTag("div").eq(2).text();
-                    } catch (Exception e) {
-                        logger.info("color 出现问题" + e.toString());
-                    }
-                    ProductCrawler p = new ProductCrawler();
-                    p.setBrand("chanel");
-                    p.setClassification(classification);
-                    p.setColor(color);
-                    p.setImg(Joiner.on("|").join(img));
-                    p.setName(name);
-                    p.setUrl(page.getUrl().toString());
-                    p.setLanguage(language);
-                    p.setIntroduction(desc);
-                    p.setRef(ref);
-                    p.setSize(size);
-                    p.setEurPrice(price);
-                    p.setTags(tags);
-                    page.putField("product", p);
+            if (elements.size() > 0) {
+                for (Element element : elements) {
+                    img.add("http://www.chanel.com" + element.attr("data-src"));
                 }
+            } else {
+                try {
+                    String imgOg = document.select("meta[property=og:image]").attr("content");
+                    img.add(imgOg);
+                } catch (Exception e) {
+                }
+            }
+            try {
+                String price = null;
+                String ref = null;
+                try {
+                    ref = document.select("div[class=ref info] p").first().text();
+                } catch (Exception e) {
+                    ref = document.select("p[class=ref info]").first().text();
+                } finally {
+                    price = getRefPrice("zh_CN", replaceBlank(ref.substring(0, 13)));
+                }
+                String size = null;
+                try {
+                    size = RegexUtil.getDataByRegex("<p class=\"size info\">(.*?)</p>", page.getHtml().toString());
+                } catch (Exception e) {
+                    logger.info("size 出现问题" + e.toString());
+                }
+                List<String> arr = RegexUtil.matchGroup(reg, page.getUrl().toString());
+                if (arr.size() == 2) {
+                    language = arr.get(0);
+                }
+                List<String> tagarr = RegexUtil.matchGroup("<span itemprop=\"title\">(.*?)</span>", page.getHtml().toString());
+                String tags = tagarr.get(3);
+                String classf = tagarr.get(2);
+                String desc = null;
+                try {
+                    desc = document.select("meta[property=og:description]").attr("content");
+                } catch (Exception e) {
+                    logger.info("desc 出现问题" + e.toString());
+                }
+                String color = null;
+                try {
+                    color = document.select("div[class=product-scroll-detail-wrapper]").first().getElementsByTag("div").eq(2).text();
+                } catch (Exception e) {
+                    color = document.select("p[class=description info]").eq(1).parents().first().text();
+                }
+                //请求英文网站 获取英文名称
 
+                String engUrl = document.select("link[hreflang=en-GB]").attr("href");
+
+                String engName = null;
+                try {
+                    Document doc = new Html(HttpRequestUtil.sendGet(engUrl)).getDocument();
+                    engName = doc.select("h1[itemprop=name]").first().text();
+                } catch (Exception e) {
+
+                }
+                ProductCrawler p = new ProductCrawler();
+                p.setBrand("chanel");
+                p.setClassification(classf);
+                p.setEngName(engName);
+                p.setColor(color);
+                p.setImg(Joiner.on("|").join(img));
+                p.setName(name);
+                p.setUrl(page.getUrl().toString());
+                p.setLanguage(language);
+                p.setIntroduction(desc);
+                p.setRef(ref);
+                p.setSize(size);
+                p.setPrice(price);
+                p.setTags(tags);
+                page.putField(Commons.cwJob, p);
+//                page.putField(Commons.tagName, true);
             } catch (Exception e) {
                 logger.info("该链接不支持json方式！");
+            } finally {
+                //移除link
+                removeList(page.getUrl().get());
+                closeWebDriver();
             }
-
-
         }
+
     }
 
     private String getRefPrice(String local, String refPrice) {
@@ -254,7 +237,7 @@ public class ChannelCrawler extends BaseCrawler {
             String priceUrl = "http://ws.chanel.com/pricing/pricing_db/" + local + "/fashion/" + refPrice + "/?i_division=FSH&i_project=fsh_v3&i_client_interface=fsh_v3_misc&i_locale=" + local + "&format=json&callback=localJsonpPricingCallbackde59ebceb39f738952933882ef45e6ed";
             Site site = Site.me().setDomain("www.chanel.com")
                     .setCharset("utf-8")
-                    .addHeader("Cookie", "cookie_consent=consent; hp_lang=" + local + "; country=CN; _cs_v=0; CH_ROUTE=373336256.20480.0000; mt.s-lbx=1; WT_FPC=id=07cca411-6bba-4805-9b14-9b1ea9ffe0b7:lv=1514919268274:ss=1514937213831; __zlcmid=kIh1BK45JL2WeP; mt.v=2.169822375.1514966018378; __ag_cm_=1; device=desktop; ag_fid=YTEyOFUXykuZUpgF; _ga=GA1.2.1317918075.1512469626; _gid=GA1.2.142845839.1515378297; chanelmwhishlist=N4IghgxhIFwNoF0A0IBOAXA7rRBfIA%3D%3D; _cs_id=20a542ad-effc-a2d5-bc1e-7f0084c96951.1512469625.36.1515380948.1515380948.1.1546633625822")
+                    .addHeader("Cookie", "cookie_consent=consent; hp_lang=" + local + "; country=CN;")
                     .setTimeOut(5000)
                     .setRetryTimes(3)
                     .setUserAgent("Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.9 Safari/537.36");
@@ -280,9 +263,9 @@ public class ChannelCrawler extends BaseCrawler {
     @Override
     public Site getSite() {
         site = Site.me()
-                .setDomain("www.chanel.com")
+                .setDomain("chanel.com")
                 .setCharset("utf-8")
-                .addCookie("hp_lang", "zh_HK")
+                .addCookie("country", "ZH")
                 .setTimeOut(5000)
                 .setRetryTimes(3)
                 .setUserAgent("Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.9 Safari/537.36");

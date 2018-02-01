@@ -8,24 +8,27 @@ package common;
  * 向指定URL发送GET方法的请求
  */
 
+import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.io.IOUtils;
-import org.apache.http.HttpException;
-import org.apache.http.HttpRequest;
-import org.apache.http.HttpRequestInterceptor;
-import org.apache.http.HttpResponse;
+import org.apache.http.*;
 import org.apache.http.client.CookieStore;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
 import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.config.SocketConfig;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.conn.socket.PlainConnectionSocketFactory;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.*;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.impl.cookie.BasicClientCookie;
+import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.protocol.HttpContext;
+import org.apache.http.util.EntityUtils;
+import org.jsoup.nodes.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import us.codecraft.webmagic.Page;
@@ -33,8 +36,10 @@ import us.codecraft.webmagic.Request;
 import us.codecraft.webmagic.Site;
 import us.codecraft.webmagic.Task;
 import us.codecraft.webmagic.downloader.*;
+import us.codecraft.webmagic.model.HttpRequestBody;
 import us.codecraft.webmagic.proxy.Proxy;
 import us.codecraft.webmagic.proxy.SimpleProxyProvider;
+import us.codecraft.webmagic.utils.HttpConstant;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -43,6 +48,8 @@ import java.io.PrintWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.HashMap;
+import java.util.Map;
 
 
 public class HttpRequestUtil {
@@ -145,5 +152,44 @@ public class HttpRequestUtil {
         Task task = site.toTask();
         Page page = httpClientDownloader.download(new Request(url), task);
         return page.getHtml().get();
+    }
+
+
+    public static String sendPost(String url, Site se, String json) {
+        Task task = se.toTask();
+        Request request = new Request(url);
+        request.setMethod(HttpConstant.Method.POST);
+        request.setRequestBody(HttpRequestBody.json(json, "utf-8"));
+        Page page = httpClientDownloader.download(request, task);
+        return page.getHtml().get();
+    }
+
+    /**
+     * post请求
+     *
+     * @param url
+     * @param json
+     * @return
+     */
+
+    public static JSONObject doPost(String url, JSONObject json) {
+        DefaultHttpClient client = new DefaultHttpClient();
+        HttpPost post = new HttpPost(url);
+        JSONObject response = null;
+        try {
+            StringEntity s = new StringEntity(json.toString());
+            s.setContentEncoding("UTF-8");
+            s.setContentType("application/json");//发送json数据需要设置contentType
+            post.setEntity(s);
+            HttpResponse res = client.execute(post);
+            if (res.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+                HttpEntity entity = res.getEntity();
+                String result = EntityUtils.toString(res.getEntity());// 返回json格式：
+                response = JSONObject.parseObject(result);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        return response;
     }
 }

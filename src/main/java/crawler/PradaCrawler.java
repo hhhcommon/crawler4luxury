@@ -1,6 +1,6 @@
 package crawler;
 
-import base.BaseCrawler;
+import absCompone.BaseCrawler;
 import com.google.common.base.Joiner;
 import common.DbUtil;
 import core.model.ProductCrawler;

@@ -1,7 +1,6 @@
-package base;
+package absCompone;
 
-import absCompone.DriverComponent;
-import componentImpl.WebDriverComponent;
+import componentImpl.WebDriverManager;
 import org.openqa.selenium.WebDriver;
 import us.codecraft.webmagic.Site;
 import us.codecraft.webmagic.Spider;
@@ -37,16 +36,14 @@ public abstract class BaseCrawler implements Runnable, PageProcessor {
      * 线程数
      */
     protected int threadDept = 1;
+
+    protected WebDriver webDriver;
     /**
      * 基类爬虫对象
      */
     protected Spider spider;
 
     protected Site site;
-
-    public WebDriver webDriver;
-
-    public DriverComponent driverComponent;
 
     public Spider getSpider() {
         return spider;
@@ -62,19 +59,36 @@ public abstract class BaseCrawler implements Runnable, PageProcessor {
 
     }
 
-    /**
-     * 初始化
-     */
-    public void init() {
-        //初始化的时候初始化 webdriver
-        if (driverComponent == null) {
-
-            driverComponent = new WebDriverComponent();
+    protected void removeList(String link) {
+        if (detailList.size() > 0) {
+            detailList.remove(link);
+            logger.info("成功移除detailList " + link);
         }
-        if (webDriver == null) {
-            //创建一个driver 超时时间设置为3s
-            webDriver = driverComponent.create(3);
+        if (navList.size() > 0) {
+            navList.remove(link);
+            logger.info("成功移除navList " + link);
         }
+        logger.info("navList size " + navList.size());
+        logger.info("detailList size " + detailList.size());
     }
 
+    protected void removeListAndClose(String link) {
+        if (detailList.size() > 0) {
+            detailList.remove(link);
+            logger.info("成功移除detailList " + link);
+        }
+        if (navList.size() > 0) {
+            navList.remove(link);
+            logger.info("成功移除navList " + link);
+        }
+        logger.info("navList size " + navList.size());
+        logger.info("detailList size " + detailList.size());
+        closeWebDriver();
+    }
+
+    protected void closeWebDriver() {
+        if (detailList.size() == 0) {
+            WebDriverManager.getInstall().closeAll();
+        }
+    }
 }

@@ -9,148 +9,156 @@ import com.jfinal.plugin.activerecord.Model;
 @SuppressWarnings("serial")
 public abstract class BaseProductCrawler<M extends BaseProductCrawler<M>> extends Model<M> implements IBean {
 
-	public void setPkid(Integer pkid) {
-		set("pkid", pkid);
-	}
+    public void setPkid(Integer pkid) {
+        set("pkid", pkid);
+    }
 
-	public Integer getPkid() {
-		return get("pkid");
-	}
+    public Integer getPkid() {
+        return get("pkid");
+    }
 
-	public void setBrand(String brand) {
-		set("brand", brand);
-	}
+    public void setBrand(String brand) {
+        set("brand", brand);
+    }
 
-	public String getBrand() {
-		return get("brand");
-	}
+    public String getBrand() {
+        return get("brand");
+    }
 
-	public void setUrl(String url) {
-		set("url", url);
-	}
+    public void setUrl(String url) {
+        set("url", url);
+    }
 
-	public String getUrl() {
-		return get("url");
-	}
+    public String getUrl() {
+        return get("url");
+    }
 
-	public void setName(String name) {
-		set("name", name);
-	}
+    public void setName(String name) {
+        set("name", name);
+    }
 
-	public String getName() {
-		return get("name");
-	}
+    public String getName() {
+        return get("name");
+    }
 
-	public void setImg(String img) {
-		set("img", img);
-	}
+    public void setImg(String img) {
+        set("img", img);
+    }
 
-	public String getImg() {
-		return get("img");
-	}
+    public String getImg() {
+        return get("img");
+    }
 
-	public void setMaterial(String material) {
-		set("material", material);
-	}
+    public void setEngName(String img) {
+        set("eng_name", img);
+    }
 
-	public String getMaterial() {
-		return get("material");
-	}
+    public String getEngName() {
+        return get("eng_name");
+    }
 
-	public void setColor(String color) {
-		set("color", color);
-	}
+    public void setMaterial(String material) {
+        set("material", material);
+    }
 
-	public String getColor() {
-		return get("color");
-	}
+    public String getMaterial() {
+        return get("material");
+    }
 
-	public void setSize(String size) {
-		set("size", size);
-	}
+    public void setColor(String color) {
+        set("color", color);
+    }
 
-	public String getSize() {
-		return get("size");
-	}
+    public String getColor() {
+        return get("color");
+    }
 
-	public void setRef(String ref) {
-		set("ref", ref);
-	}
+    public void setSize(String size) {
+        set("size", size);
+    }
 
-	public String getRef() {
-		return get("ref");
-	}
+    public String getSize() {
+        return get("size");
+    }
 
-	public void setPrice(String price) {
-		set("price", price);
-	}
+    public void setRef(String ref) {
+        set("ref", ref);
+    }
 
-	public String getPrice() {
-		return get("price");
-	}
+    public String getRef() {
+        return get("ref");
+    }
 
-	public void setClassification(String classification) {
-		set("classification", classification);
-	}
+    public void setPrice(String price) {
+        set("price", price);
+    }
 
-	public String getClassification() {
-		return get("classification");
-	}
+    public String getPrice() {
+        return get("price");
+    }
 
-	public void setLanguage(String language) {
-		set("language", language);
-	}
+    public void setClassification(String classification) {
+        set("classification", classification);
+    }
 
-	public String getLanguage() {
-		return get("language");
-	}
+    public String getClassification() {
+        return get("classification");
+    }
 
-	public void setTags(String tags) {
-		set("tags", tags);
-	}
+    public void setLanguage(String language) {
+        set("language", language);
+    }
 
-	public String getTags() {
-		return get("tags");
-	}
+    public String getLanguage() {
+        return get("language");
+    }
 
-	public void setHkPrice(String hkPrice) {
-		set("hk_price", hkPrice);
-	}
+    public void setTags(String tags) {
+        set("tags", tags);
+    }
 
-	public String getHkPrice() {
-		return get("hk_price");
-	}
+    public String getTags() {
+        return get("tags");
+    }
 
-	public void setEnPrice(String enPrice) {
-		set("en_price", enPrice);
-	}
+    public void setHkPrice(String hkPrice) {
+        set("hk_price", hkPrice);
+    }
 
-	public String getEnPrice() {
-		return get("en_price");
-	}
+    public String getHkPrice() {
+        return get("hk_price");
+    }
 
-	public void setEurPrice(String eurPrice) {
-		set("eur_price", eurPrice);
-	}
+    public void setEnPrice(String enPrice) {
+        set("en_price", enPrice);
+    }
 
-	public String getEurPrice() {
-		return get("eur_price");
-	}
+    public String getEnPrice() {
+        return get("en_price");
+    }
 
-	public void setIntroduction(String Introduction) {
-		set("Introduction", Introduction);
-	}
+    public void setEurPrice(String eurPrice) {
+        set("eur_price", eurPrice);
+    }
 
-	public String getIntroduction() {
-		return get("Introduction");
-	}
+    public String getEurPrice() {
+        return get("eur_price");
+    }
 
-	public void setCode(String code) {
-		set("code", code);
-	}
+    public void setIntroduction(String Introduction) {
+        set("Introduction", Introduction);
+    }
 
-	public String getCode() {
-		return get("code");
-	}
+    public String getIntroduction() {
+        return get("Introduction");
+    }
+
+    public void setCode(String code) {
+        set("code", code);
+    }
+
+    public String getCode() {
+        return get("code");
+    }
 
 }

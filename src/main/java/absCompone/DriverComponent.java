@@ -15,29 +15,41 @@ import java.util.logging.Logger;
 public abstract class DriverComponent {
 
     protected static final Logger logger = Logger.getLogger(String.valueOf(DriverComponent.class));
-    /**
-     * webDriver的实例
-     */
-    public WebDriver webDriver;
 
-    /**
-     * 初始化 chrome 位置信息
-     */
-    protected DriverComponent() {
-        System.getProperties().setProperty("webdriver.chrome.driver", DriverComponent.class.getClassLoader().getResource("chromedriver.exe").getPath());
-    }
 
     /**
      * 创建webDriver
      *
      * @return
      */
-    public abstract WebDriver create(int sec);
+    public abstract WebDriver create(int sec, WebDriver webDriver);
+
+
+    /**
+     * 创建webDriver
+     *
+     * @return
+     */
+    public abstract WebDriver get(int sec) throws InterruptedException;
+
+    /**
+     * 返回可用的webdrive
+     *
+     * @param webDriver
+     */
+    public abstract void returnToPool(WebDriver webDriver);
 
     /**
      * 销毁webDriver
      */
-    public abstract void destoty();
+    public abstract WebDriver destoty(WebDriver webDriver);
+
+    public abstract void closeAll();
+
+    /**
+     * 销毁webDriver
+     */
+    public abstract WebDriver quit(WebDriver webDriver);
 
     /**
      * 获取下一页

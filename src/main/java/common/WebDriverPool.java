@@ -1,51 +1,144 @@
 package common;
 
-import absCompone.BasePool;
+import componentImpl.WebDriverManager;
+import org.apache.log4j.Logger;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.remote.DesiredCapabilities;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.io.IOException;
+import java.util.*;
+import java.util.concurrent.BlockingDeque;
+import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * @Author: yang
- * @Date: 2018/1/2.14:03
- * @Desc: 单例模式下 创建 WebDriverPool
+ * @author code4crafter@gmail.com <br>
+ *         Date: 13-7-26 <br>
+ *         Time: 下午1:41 <br>
  */
-public class WebDriverPool implements BasePool {
-    /**
-     * 单例模式下 创建
+public class WebDriverPool {
+    private Logger logger = Logger.getLogger(getClass());
+
+    private final static int DEFAULT_CAPACITY = 5;
+
+    private final int capacity;
+
+    private final static int STAT_RUNNING = 1;
+
+    private final static int STAT_CLODED = 2;
+
+    private AtomicInteger stat = new AtomicInteger(STAT_RUNNING);
+
+    /*
+     * new fields for configuring phantomJS
      */
-    private static WebDriverPool instance;
-    private static Map<String, WebDriver> webDriverMap;
+    private WebDriver mDriver = null;
 
-    private WebDriverPool() {
+    /**
+     * Configure the GhostDriver, and initialize a WebDriver instance. This part
+     * of code comes from GhostDriver.
+     * https://github.com/detro/ghostdriver/tree/master/test/java/src/test/java/ghostdriver
+     *
+     * @throws IOException
+     * @author bob.li.0718@gmail.com
+     */
+    public void configure() throws IOException {
+        try {
+//                options.setBinary(WebDriverManager.class.getClassLoader().getResource("chromedriver.exe").getPath()); //注意chrome和chromeDirver的区别
+            System.getProperties().setProperty("webdriver.chrome.driver", WebDriverManager.class.getClassLoader().getResource("chromedriver.exe").getPath());
+//
+            HashMap<String, Object> images = new HashMap<String, Object>();
+            images.put("images", 2);
+
+            HashMap<String, Object> prefs = new HashMap<String, Object>();
+            prefs.put("profile.default_content_setting_values", images);
+
+            ChromeOptions chrome_options = new ChromeOptions();
+            chrome_options.setExperimentalOption("prefs", prefs);
+
+            DesiredCapabilities chromeCaps = DesiredCapabilities.chrome();
+            chromeCaps.setCapability(ChromeOptions.CAPABILITY, chrome_options);
+
+            mDriver = new ChromeDriver(chromeCaps);
+            //设置超时时间10s
+            mDriver.manage().timeouts().setScriptTimeout(10, TimeUnit.SECONDS);
+        } catch (Exception e) {
+            throw new IllegalArgumentException("创建WebDriver发生错误了!" + e.toString());
+        }
     }
 
-    public synchronized static WebDriverPool getInstall() {
-        if (instance == null) {                         //Single Checked
-            synchronized (WebDriverPool.class) {
-                if (instance == null) {                 //Double Checked
-                    instance = new WebDriverPool();
+
+    /**
+     * store webDrivers created
+     */
+    private List<WebDriver> webDriverList = Collections
+            .synchronizedList(new ArrayList<WebDriver>());
+
+    /**
+     * store webDrivers available
+     */
+    private BlockingDeque<WebDriver> innerQueue = new LinkedBlockingDeque<WebDriver>();
+
+    public WebDriverPool(int capacity) {
+        this.capacity = capacity;
+    }
+
+    public WebDriverPool() {
+        this(DEFAULT_CAPACITY);
+    }
+
+    /**
+     * @return
+     * @throws InterruptedException
+     */
+    public WebDriver get() throws InterruptedException {
+        checkRunning();
+        WebDriver poll = innerQueue.poll();
+        if (poll != null) {
+            return poll;
+        }
+        if (webDriverList.size() < capacity) {
+            synchronized (webDriverList) {
+                if (webDriverList.size() < capacity) {
+                    // add new WebDriver instance into pool
+                    try {
+                        configure();
+                        innerQueue.add(mDriver);
+                        webDriverList.add(mDriver);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                 }
             }
+
         }
-        if (webDriverMap == null) {
-            synchronized (WebDriverPool.class) {
-                if (webDriverMap == null) {                 //Double Checked
-                    webDriverMap = new HashMap<>();
-                }
-            }
-        }
-        return instance;
+        return innerQueue.take();
     }
 
-    @Override
-    public void addDriver(String id, WebDriver webDriver) {
-        webDriverMap.put(id, webDriver);
+    public void returnToPool(WebDriver webDriver) {
+        checkRunning();
+        innerQueue.add(webDriver);
     }
 
-    @Override
-    public WebDriver getDriverById(String id) {
-        return webDriverMap.get(id);
+    protected void checkRunning() {
+        if (!stat.compareAndSet(STAT_RUNNING, STAT_RUNNING)) {
+            throw new IllegalStateException("Already closed!");
+        }
     }
+
+    public void closeAll() {
+        boolean b = stat.compareAndSet(STAT_RUNNING, STAT_CLODED);
+        if (!b) {
+            throw new IllegalStateException("Already closed!");
+        }
+        for (WebDriver webDriver : webDriverList) {
+            logger.info("Quit webDriver" + webDriver);
+            webDriver.quit();
+            webDriver = null;
+        }
+    }
+
 }

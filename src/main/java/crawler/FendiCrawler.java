@@ -1,6 +1,6 @@
 package crawler;
 
-import base.BaseCrawler;
+import absCompone.BaseCrawler;
 import com.google.common.base.Joiner;
 import common.DbUtil;
 import common.RegexUtil;
@@ -33,7 +33,7 @@ public class FendiCrawler extends BaseCrawler {
 
     public static void main(String[] args) {
         DbUtil.init();
-        new FendiCrawler(1).run();
+        new FendiCrawler(5).run();
     }
 
     @Override
@@ -57,7 +57,7 @@ public class FendiCrawler extends BaseCrawler {
 
     @Override
     public void process(Page page) {
-        logger.info("process>>>>" + page.getUrl().toString());
+        logger.info("开始采集url " + page.getUrl().get());
         if (page.getUrl().regex(reg).match()) {
             Document document = page.getHtml().getDocument();
             String name = document.getElementsByClass("product-description").first().getElementsByTag("h1").text();
@@ -73,10 +73,11 @@ public class FendiCrawler extends BaseCrawler {
             String color = RegexUtil.getDataByRegex("itemprop=\"url\"/><meta content=\"(.*?)\" itemprop=\"color\"/>",
                     page.getHtml().toString());
             String ref = document.getElementsByClass("product-description").first().getElementsByClass("code").text();
-            String price = document.getElementsByClass("price").first().text();
+            String price = document.select("meta[itemprop=lowPrice]").first().attr("content");
             String classification = document.getElementById("dropdown-main-category").getElementsByTag("meta").attr("content");
             ProductCrawler p = new ProductCrawler();
             p.setBrand("fendi");
+            p.setEngName(name);
             p.setColor(color);
             p.setImg(Joiner.on("|").join(imgList));
             p.setName(name);
@@ -97,13 +98,17 @@ public class FendiCrawler extends BaseCrawler {
                 p.setLanguage("gb");
             }
             p.setIntroduction(introduction);
-            page.putField("product", p);
+            page.putField("productCrawler", p);
         } else {
             Elements elements = page.getHtml().getDocument().getElementsByClass("inner");
             for (Element e : elements) {
                 String link = e.getElementsByTag("a").eq(2).attr("href");
-                page.addTargetRequest(link);
-                logger.info("next link is added>>>>：" + "https://www.fendi.com" + link);
+                link = "https://www.fendi.com" + link;
+                if (RegexUtil.checkHttp(link)) {
+                    logger.info("加入到采集队列： " + link);
+                    page.addTargetRequest(link);
+                }
+
             }
 
         }
@@ -116,8 +121,8 @@ public class FendiCrawler extends BaseCrawler {
                 .addHeader("Accept-Language", "zh-CN,zh;q=0.8")
                 .addHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36")
                 .addCookie("www.fendi.com", "VISITOR=returning; VISITOR=returning; f_location=39.9289|116.3883; mf_9e16e19a-9df3-46a7-bdf3-2ccc5054083f=-1; f_cookiedisclaimer-v1=true; f_nl_count=1; f_nl_hide_session=true; f_countrydetection=fr; NEW_VISITOR=new; __atuvc=35%7C24; __atuvs=59425a1f5e91c987001; count_bs=12; _uetsid=_uet786668a0; _ga=GA1.2.1862722591.1497503758; _gid=GA1.2.240050887.1497503758; rr_rcs=eF4lyjEOgDAIAMDFyX84kgClBWYXv4GtTRzc1PfbxPlumq_3PttOyQqQuGYUY0QVSECLrgP8B0YXpDKaA9D01E28HBZ9RGIEqdqgm3YIzsphFsjyAUE5Fpo; JSESSIONID=7E377DBE4E3D7DED048CEFD417583CB1.pro-hybris-fendi-as2; AWSELB=19C3EFC718D4E46B0AFA9FAEC94E244A6B371387357C9B7DBE85352C18157AEC2C677552694079786BA6A90A4C7229321DE2C2062CD0ADA67C3121C3CF712279A93B90ACBF66A8CE41B09F6B3474B1187ADB1AE94F")
-                .setSleepTime(500)
                 .setRetryTimes(3)
+                .setCharset("utf-8")
                 .setTimeOut(5000)
                 .setUserAgent("Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.9 Safari/537.36");
         return site;

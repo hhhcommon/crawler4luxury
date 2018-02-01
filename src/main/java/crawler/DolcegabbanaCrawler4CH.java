@@ -1,9 +1,9 @@
 package crawler;
 
-import base.BaseCrawler;
+import absCompone.BaseCrawler;
 import com.google.common.base.Joiner;
-import common.DbUtil;
-import common.JsonParseUtil;
+import common.*;
+import componentImpl.WebDriverManager;
 import core.model.ProductCrawler;
 import io.netty.util.internal.ObjectUtil;
 import org.apache.logging.log4j.util.Strings;
@@ -15,6 +15,7 @@ import us.codecraft.webmagic.Page;
 import us.codecraft.webmagic.Site;
 import us.codecraft.webmagic.Spider;
 import us.codecraft.webmagic.monitor.SpiderMonitor;
+import us.codecraft.webmagic.selector.Html;
 
 import javax.management.JMException;
 import java.util.ArrayList;
@@ -60,6 +61,7 @@ public class DolcegabbanaCrawler4CH extends BaseCrawler {
 
     @Override
     public void process(Page page) {
+        webDriver = WebDriverManager.getInstall().create(3, webDriver);
         logger.info("process>>>>>" + page.getUrl().toString());
         if (urls.contains(page.getUrl().toString())) {
             //获取navs的链接
@@ -67,41 +69,53 @@ public class DolcegabbanaCrawler4CH extends BaseCrawler {
             ObjectUtil.checkNotNull(elementNavs, "elementNavs is null");
             for (Element element : elementNavs) {
                 String link = element.getElementsByTag("a").attr("href");
-                if (!Strings.isBlank(link)) {
+                if (!Strings.isBlank(link) && RegexUtil.checkHttp(link)) {
                     navList.add(link);
                     page.addTargetRequest(link);
+                    logger.info("加入到导航采集队列 " + link);
                 }
+                logger.info("navList  " + navList.size());
             }
         }
         //获取详情页链接
         if (navList.contains(page.getUrl().toString())) {
-            Elements elementDetail = page.getHtml().getDocument().getElementsByClass("js-producttile_link b-product_image-wrapper");
+            Document document = WebDriverManager.getInstall().getNextPager(page, webDriver);
+            Elements elementDetail = document.select("a[class=js-producttile_link b-product_image-wrapper]");
             ObjectUtil.checkNotNull(elementDetail, "elementDetail is null");
             for (Element element : elementDetail) {
                 String link = element.getElementsByTag("a").attr("href");
-                if (!Strings.isBlank(link)) {
+                if (!Strings.isBlank(link) && RegexUtil.checkHttp(link)) {
                     detailList.add(link);
                     page.addTargetRequest(link);
-                    logger.info("detail url is added>>>>" + link);
+                    logger.info("加入到详情页采集队列 " + link);
                 }
             }
+            logger.info("detailList  " + detailList.size());
         }
         //解析详情页
         if (detailList.contains(page.getUrl().toString())) {
             logger.info("deal detail page is start");
-            Document document = page.getHtml().getDocument();
+            Document document = WebDriverManager.getInstall().getPage(page.getUrl().get(), webDriver);
+//            Document document = page.getHtml().getDocument();
             String size = "";
             String ref = document.getElementsByClass("b-product_master_id").text().split("：")[1].trim();
             String desc = document.getElementsByClass("b-product_long_description").text();
-            String pName = document.getElementsByClass("b-product_name").text();
-            String prize = document.getElementsByClass("b-product_price").text();
-            String color = document.getElementsByClass("js_color-description").text();
-            Elements classification = document.getElementsByClass("b-breadcrumb-link js-breadcrumb_refinement-link");
-            List<String> claList = new ArrayList<>();
-            for (Element e : classification) {
-                String cla = e.text();
-                claList.add(cla);
+            String pName = null;
+            try {
+                pName = document.select("meta[property=og:title]").attr("content").split("-")[0];
+            } catch (Exception e) {
             }
+            String engName = null;
+            try {
+                //获取engName
+                String engUrl = document.select("link[hreflang=en]").attr("href");
+                engName = new Html(HttpRequestUtil.sendGet(engUrl)).getDocument().select("meta[property=og:title]").attr("content").split("-")[0];
+            } catch (Exception e) {
+            }
+            String color = document.getElementsByClass("js_color-description").text();
+            String prize = RegexUtil.getDataByRegex("\"productPrice\":\"(.*?)\"", document.outerHtml().toString());
+            String classf = RegexUtil.getDataByRegex("\"productType\":\"(.*?)\"", page.getHtml().get());
+
             Elements sizeEl = document.getElementsByClass("b-swatches_size-item emptyswatch");
             ObjectUtil.checkNotNull(sizeEl, "sizeEl is null");
             List<String> sizeList = new ArrayList<>();
@@ -124,16 +138,20 @@ public class DolcegabbanaCrawler4CH extends BaseCrawler {
             ProductCrawler p = new ProductCrawler();
             p.setBrand("dolcegabbana");
             p.setColor(color);
+            p.setEngName(engName);
             p.setImg(Joiner.on("|").join(imgList));
             p.setName(pName);
-            p.setClassification(Joiner.on("|").join(claList));
+            p.setClassification(classf);
             p.setUrl(page.getUrl().toString());
             p.setLanguage("zh_cn");
             p.setRef(ref);
             p.setSize(size);
-            p.setPrice(prize);
+            p.setEnPrice(prize);
             p.setIntroduction(desc);
-            page.putField("product", p);
+            page.putField("productCrawler", p);
+            //是否重新更新类别
+            page.putField(Commons.cfName, false);
+            page.putField(Commons.ISDATAINPUT, false);
         }
 
 
@@ -143,10 +161,9 @@ public class DolcegabbanaCrawler4CH extends BaseCrawler {
     public Site getSite() {
         Site site = Site.me()
                 .setDomain("us.dolcegabbana.com")
-                .addCookie("preferredCountry", "CN")
+                .addCookie("preferredCountry", "GB")
                 .addHeader("Accept-Language", "zh-CN,zh;q=0.8")
-                .setUserAgent("Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.9 Safari/537.36")
-                .setSleepTime(3000);
+                .setUserAgent("Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.9 Safari/537.36");
         return site;
     }
 }

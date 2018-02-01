@@ -1,4 +1,4 @@
-jdbcUrl = jdbc:mysql://192.168.3.100/data?characterEncoding=utf8&zeroDateTimeBehavior=convertToNull
+jdbcUrl = jdbc:mysql://192.168.3.100/aliyun?characterEncoding=utf8&zeroDateTimeBehavior=convertToNull
 user = root
 password =123456
 devMode = true

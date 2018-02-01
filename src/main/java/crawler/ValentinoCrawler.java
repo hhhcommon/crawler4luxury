@@ -1,10 +1,11 @@
 package crawler;
 
-import base.BaseCrawler;
+import absCompone.BaseCrawler;
 import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
 import common.DbUtil;
 import common.HttpRequestUtil;
+import componentImpl.WebDriverManager;
 import core.model.ProductCrawler;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -54,7 +55,8 @@ public class ValentinoCrawler extends BaseCrawler {
 
     @Override
     public void process(Page page) {
-        init();
+        //创建一个driver 超时时间设置为3s
+        webDriver = WebDriverManager.getInstall().create(3, webDriver);
         logger.info("process start>>>>" + page.getUrl().toString());
         Document document = page.getHtml().getDocument();
         if (urls.contains(page.getUrl().toString())) {
@@ -72,7 +74,7 @@ public class ValentinoCrawler extends BaseCrawler {
 
         if (navList.contains(page.getUrl().toString())) {
             logger.info("nav>>>>" + page.getUrl().toString());
-            Document document1 = driverComponent.getNextPager(page, webDriver, "加载更多");
+            Document document1 = WebDriverManager.getInstall().getNextPager(page, webDriver, "加载更多");
             Elements elements = document1.select("article[class=search-item   ]");
             for (Element element : elements) {
                 String detailLink = element.getElementsByTag("a").attr("href");
@@ -88,7 +90,7 @@ public class ValentinoCrawler extends BaseCrawler {
 
         if (detailList.contains(page.getUrl().toString())) {
 
-            driverComponent.destoty();
+            WebDriverManager.getInstall().destoty(webDriver);
             logger.info("detail>>>" + page.getUrl().toString());
             String pname = null;
             String dePri = null;

@@ -1,7 +1,6 @@
 package download;
 
 import absCompone.DriverComponent;
-import componentImpl.WebDriverComponent;
 import org.jsoup.nodes.Document;
 import org.openqa.selenium.WebDriver;
 import us.codecraft.webmagic.Page;
@@ -26,7 +25,7 @@ public class SeleniumDownloader implements Downloader {
 
     private List<String> text;
 
-    private boolean isNotOnlyGetDoc = true;
+    private boolean OnlyGetDoc = true;
 
     public SeleniumDownloader(WebDriver webDriver, DriverComponent driverComponent, List<String> text) {
         this.webDriver = webDriver;
@@ -34,10 +33,10 @@ public class SeleniumDownloader implements Downloader {
         this.text = text;
     }
 
-    public SeleniumDownloader(WebDriver webDriver, DriverComponent driverComponent, Boolean isNotOnlyGetDoc) {
+    public SeleniumDownloader(WebDriver webDriver, DriverComponent driverComponent, Boolean OnlyGetDoc) {
         this.webDriver = webDriver;
         this.driverComponent = driverComponent;
-        this.isNotOnlyGetDoc = isNotOnlyGetDoc;
+        this.OnlyGetDoc = OnlyGetDoc;
     }
 
     @Override
@@ -46,10 +45,10 @@ public class SeleniumDownloader implements Downloader {
         Page page = null;
         Document doc;
         try {
-            if (isNotOnlyGetDoc) {
-                doc = driverComponent.getNextPager(request.getUrl().toString(), webDriver, text);
-            } else {
+            if (OnlyGetDoc) {
                 doc = driverComponent.getPage(request.getUrl().toString(), webDriver);
+            } else {
+                doc = driverComponent.getNextPager(request.getUrl().toString(), webDriver, text);
             }
             page = new Page();
             page.setRawText(doc.outerHtml());

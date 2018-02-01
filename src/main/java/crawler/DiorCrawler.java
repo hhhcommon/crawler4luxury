@@ -1,8 +1,9 @@
 package crawler;
 
-import base.BaseCrawler;
+import absCompone.BaseCrawler;
 import com.google.common.base.Strings;
 import common.DbUtil;
+import common.HttpRequestUtil;
 import common.RegexUtil;
 import core.model.ProductCrawler;
 import org.jsoup.nodes.Document;
@@ -13,11 +14,10 @@ import us.codecraft.webmagic.Page;
 import us.codecraft.webmagic.Site;
 import us.codecraft.webmagic.Spider;
 import us.codecraft.webmagic.monitor.SpiderMonitor;
+import us.codecraft.webmagic.selector.Html;
 
 import javax.management.JMException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * @Author: yang
@@ -51,9 +51,9 @@ public class DiorCrawler extends BaseCrawler {
     public void run() {
         logger.info("============ DiorCrawler Crawler start=============");
         urls.add("https://www.dior.cn/home/zh_cn");
-        urls.add("https://www.dior.com/home/de_de");
-        urls.add("https://www.dior.com/home/en_gb");
-        urls.add("https://www.dior.com/home/zh_hk");
+//        urls.add("https://www.dior.com/home/de_de");
+//        urls.add("https://www.dior.com/home/en_gb");
+//        urls.add("https://www.dior.com/home/zh_hk");
         spider = Spider.create(new DiorCrawler(threadDept))
                 .addUrl((String[]) urls.toArray(new String[urls.size()]))
                 .addPipeline(CrawlerPipeline.getInstall())
@@ -109,62 +109,60 @@ public class DiorCrawler extends BaseCrawler {
                         }
 
                     }
+                    logger.info("deepUrls size " + deepUrls.size());
                 } catch (Exception e) {
                 }
             }
         }
         if (deepUrls.contains(page.getUrl().toString())) {
             ProductCrawler productCrawler = new ProductCrawler();
-            String reg = "\"productPrice\":\"(.*?)\",";
-            //获取价格
-            String price = RegexUtil.getDataByRegex(reg, document.outerHtml());
+            //唯一码
+            String ref = document.select("meta[name=gsa-sku]").attr("content");
+//            String reg = "\"productPrice\":\"(.*?)\",";
+//            String price = RegexUtil.getDataByRegex(reg, document.outerHtml());
+            String otherPrice = document.select("meta[name=gsa-prices]").attr("content");
             //商品销售状态
             String statusLabel = document.select("p[class=status-label]").text();
-
+            //商品名
+            String name = document.select("meta[name=gsa-subtitle]").attr("content");
+            //价格
             if (page.getUrl().toString().contains("zh_hk")) {
                 //香港价格
                 productCrawler.setLanguage("zh_hk");
-                if (Strings.isNullOrEmpty(statusLabel)) {
-                    productCrawler.setHkPrice(price);
-                } else {
-                    productCrawler.setHkPrice(statusLabel);
-                }
-
+                productCrawler.setHkPrice(otherPrice);
             }
             if (page.getUrl().toString().contains("zh_cn")) {
                 productCrawler.setLanguage("zh_CN");
-                if (Strings.isNullOrEmpty(statusLabel)) {
-                    productCrawler.setPrice(price);
-                } else {
-                    productCrawler.setPrice(statusLabel);
+                productCrawler.setPrice(otherPrice);
+                //设置英文名
+                try {
+                    String gbUrl = document.select("link[hreflang=en-GB]").attr("href");
+                    String engName = new Html(HttpRequestUtil.sendGet(gbUrl, Site.me().setUserAgent("Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.9 Safari/537.36"))).getDocument().select("meta[name=gsa-subtitle]").attr("content");
+                    productCrawler.setEngName(engName);
+                } catch (Exception e) {
+                    logger.info("设置英文名称发生错误");
                 }
             }
             if (page.getUrl().toString().contains("de_de")) {
                 productCrawler.setLanguage("de_de");
-                if (Strings.isNullOrEmpty(statusLabel)) {
-                    productCrawler.setEurPrice(price);
-                } else {
-                    productCrawler.setEurPrice(statusLabel);
-                }
+                productCrawler.setEurPrice(otherPrice);
             }
             if (page.getUrl().toString().contains("en_gb")) {
                 productCrawler.setLanguage("en_gb");
-                if (Strings.isNullOrEmpty(statusLabel)) {
-                    productCrawler.setEnPrice(price);
-                } else {
-                    productCrawler.setEnPrice(statusLabel);
-                }
+                productCrawler.setEnPrice(otherPrice);
+                productCrawler.setEngName(name);
             }
-            //商品名
-            String name = document.select("meta[name=gsa-subtitle]").attr("content");
-            //唯一码
-            String ref = document.select("meta[name=gsa-productcode]").attr("content");
-            //描述
-            String desc = document.select("div[class=productCrawler-description-content]").text();
+            //描述product-description-content
+            String desc = document.select("div[class=product-description-content]").text();
             //照片
             String img = document.select("meta[name=gsa-image]").attr("content");
             //商品类别
-            String classf = document.select("meta[name=gsa-univers-label]").attr("content") + "-" + document.select("meta[name=gsa-title]").attr("content");
+            String classf = null;
+            try {
+                classf = document.select("meta[name=gsa-univers-label]").attr("content") + document.select("li[data-reactid=8]").first().text();
+            } catch (Exception e) {
+                classf = document.select("meta[name=gsa-univers-label]").attr("content");
+            }
             productCrawler.setClassification(classf);
             productCrawler.setBrand("dior");
             productCrawler.setUrl(page.getUrl().toString());
@@ -175,7 +173,19 @@ public class DiorCrawler extends BaseCrawler {
             productCrawler.setRef(ref);
             logger.info("商品信息" + productCrawler.toString());
             page.putField("productCrawler", productCrawler);
+            //是否重新更新类别
+            page.putField("isClassf", true);
         }
+    }
+
+    private String getPrice(String priceUrl, String ref) {
+        Site site = Site.me()
+                .setCharset("utf-8")
+                .setTimeOut(5000)
+                .setRetryTimes(3)
+                .setUserAgent("Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.9 Safari/537.36");
+        String json = "{\"items\":[{\"sku\":\"" + ref + "\"}]}";
+        return RegexUtil.getDataByRegex(" \"price\": \"(.*?)\",", HttpRequestUtil.sendPost(priceUrl, site, json));
     }
 
 

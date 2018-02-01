@@ -2,6 +2,8 @@ package common;
 
 import com.google.common.base.Strings;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -104,5 +106,19 @@ public class RegexUtil {
     public static void main(String[] args) {
         String str = "“JE T&#39;AIME” TEDDY黑色缎面和透明水晶夹克";
         System.out.println(RegexUtil.delHTMLTag(str));
+    }
+
+
+    public static String getDomin(String http, String urls) {
+
+        //这样获取的方式，不请求就能获取到域名
+        try {
+            URL url = new URL(urls);
+            String domain = http + url.getHost();
+            return domain;
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 }
