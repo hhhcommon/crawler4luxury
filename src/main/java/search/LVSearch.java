@@ -6,6 +6,8 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import us.codecraft.webmagic.selector.Html;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 /**
  * @Author: yang
  * @Date: 2017/12/12.13:58
@@ -30,9 +32,16 @@ public class LVSearch {
         return html.get();
     }
 
+    private final static int STAT_RUNNING = 1;
+
+    private final static int STAT_CLODED = 2;
+
+    private AtomicInteger stat = new AtomicInteger(STAT_RUNNING);
+
     public static void main(String[] args) {
-        String p = "380,00€";
-        System.out.println(p.replace(".", "").replace(",", "."));
+        LVSearch cv = new LVSearch();
+        System.out.println(cv.stat.get());
+        System.out.println(cv.stat.compareAndSet(STAT_RUNNING, STAT_CLODED));
     }
 
 }

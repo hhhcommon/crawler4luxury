@@ -11,11 +11,13 @@ import org.apache.logging.log4j.util.Strings;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.openqa.selenium.WebDriver;
 import pipeline.CrawlerPipeline;
 import us.codecraft.webmagic.Page;
 import us.codecraft.webmagic.Site;
 import us.codecraft.webmagic.Spider;
 import us.codecraft.webmagic.monitor.SpiderMonitor;
+import us.codecraft.webmagic.scheduler.RedisScheduler;
 
 import javax.management.JMException;
 import java.util.ArrayList;
@@ -40,7 +42,7 @@ public class LVCrawler extends BaseCrawler {
 
     public static void main(String[] args) {
         DbUtil.init();
-        new LVCrawler(1).run();
+        new LVCrawler(10).run();
     }
 
     @Override
@@ -54,6 +56,7 @@ public class LVCrawler extends BaseCrawler {
         spider = Spider.create(new LVCrawler(threadDept))
                 .addUrl((String[]) urls.toArray(new String[urls.size()]))
                 .addPipeline(CrawlerPipeline.getInstall())
+//                .setScheduler(new RedisScheduler("192.168.3.100"))
                 .thread(threadDept);
         spider.start();
     }
@@ -62,7 +65,7 @@ public class LVCrawler extends BaseCrawler {
     public void process(Page page) {
         logger.info("开始处理url> " + page.getUrl().get());
         Document document = page.getHtml().getDocument();
-        if (urls.contains(page.getUrl().toString())) {
+        if (urls.contains(page.getUrl().get())) {
             //获取navs
             Elements elements = document.select("li[class=mm-block]");
             for (Element element : elements) {
@@ -76,14 +79,15 @@ public class LVCrawler extends BaseCrawler {
             logger.info("navList 个数 " + navList.size());
         }
         // 获取详情页
-        if (navList.contains(page.getUrl().toString())) {
+        if (navList.contains(page.getUrl().get())) {
             logger.info("获取详情页开始 " + page.getUrl().get());
             Document doc = null;
+            WebDriver webDriverBy;
             try {
                 //创建一个driver 超时时间设置为3
-                webDriver = WebDriverManager.getInstall().create(3, webDriver);
-                doc = WebDriverManager.getInstall().getNextPager(page, webDriver);
-//                doc = page.getHtml().getDocument();
+                webDriverBy = WebDriverManager.getInstall().getWebDriverPool(threadDept).get();
+                doc = WebDriverManager.getInstall().getNextPager(page, webDriverBy);
+                WebDriverManager.getInstall().returnToPool(webDriverBy);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -113,9 +117,10 @@ public class LVCrawler extends BaseCrawler {
 
             logger.info("detailList 的个数 " + detailList.size());
         }
-// || page.getUrl().regex(detailReg).match()
-        if (detailList.contains(page.getUrl().toString())) {
+//|| page.getUrl().regex(detailReg).match()
+        if (detailList.contains(page.getUrl().get())) {
             logger.info("开始处理详情页" + page.getUrl().get());
+            WebDriverManager.getInstall().closeAll();
 //            WebDriverManager.getInstall().quit(webDriver);
             String pname = document.getElementsByClass("productName title").text();
             String ref = document.select("div[class=sku reading-and-link-text]").text();
@@ -124,9 +129,6 @@ public class LVCrawler extends BaseCrawler {
             }
             //priceValue price-sheet
             String prize = document.select("td[class=priceValue price-sheet]").text();
-            if (Strings.isNotBlank(prize) && (!page.getUrl().toString().contains("deu-de") || !page.getUrl().get().contains("eng-gb"))) {
-                prize = prize.replace(",", "");
-            }
             String desc = null;
             try {
                 desc = document.select("div[class=productDescription description-push-text onlyML ppTextDescription]").first().text();
@@ -165,7 +167,12 @@ public class LVCrawler extends BaseCrawler {
                 p.setLanguage("eng-hk");
             }
             if (page.getUrl().toString().contains("de.louisvuitton")) {
-                p.setEurPrice(prize.replace(".", "").replace(",", "."));
+                logger.info("没有转换之前的是  " + prize);
+                prize = prize.replace(".", "");
+                logger.info("转换第一次的是  " + prize);
+                prize = prize.replace(",", ".");
+                logger.info("转换第二次的是  " + prize);
+                p.setEurPrice(prize);
                 p.setEngName(pname);
                 p.setLanguage("de-de");
             }

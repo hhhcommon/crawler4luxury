@@ -103,22 +103,22 @@ public class WebDriverManager extends DriverComponent {
     }
 
     @Override
-    public WebDriver get(int sec) throws InterruptedException {
-        if (webDriverPool == null) {
-            synchronized (this) {
-                webDriverPool = new WebDriverPool(sec);
-            }
-        }
+    public WebDriver get(int thread) throws InterruptedException {
+        createPool(thread);
         return webDriverPool.get();
     }
 
-    public WebDriverPool getWebDriverPool(int thired) {
+    public WebDriverPool getWebDriverPool(int thread) {
+        createPool(thread);
+        return webDriverPool;
+    }
+
+    private void createPool(int thread) {
         if (webDriverPool == null) {
             synchronized (this) {
-                webDriverPool = new WebDriverPool(thired);
+                webDriverPool = new WebDriverPool(thread);
             }
         }
-        return webDriverPool;
     }
 
     @Override
@@ -160,7 +160,7 @@ public class WebDriverManager extends DriverComponent {
     public Document getNextPager(Page page, WebDriver webDriver) {
         Html html;
         try {
-            webDriver.get(page.getUrl().toString());
+            webDriver.get(page.getUrl().get());
         } catch (Exception e) {
             throw new IllegalArgumentException("getNextPager发生错误了!" + e.toString());
         } finally {

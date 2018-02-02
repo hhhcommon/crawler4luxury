@@ -47,7 +47,7 @@ public class GucciCrawler extends BaseCrawler {
 
     public static void main(String[] args) {
         DbUtil.init();
-        new GucciCrawler(4).run();
+        new GucciCrawler(8).run();
     }
 
     @Override

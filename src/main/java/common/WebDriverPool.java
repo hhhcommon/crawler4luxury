@@ -15,9 +15,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * @author code4crafter@gmail.com <br>
- *         Date: 13-7-26 <br>
- *         Time: 下午1:41 <br>
+ * @Author cyy
+ * @Date 2018/2/2 10:40
+ * @Description webdrive pool 管理webdriver
  */
 public class WebDriverPool {
     private Logger logger = Logger.getLogger(getClass());
@@ -125,20 +125,22 @@ public class WebDriverPool {
 
     protected void checkRunning() {
         if (!stat.compareAndSet(STAT_RUNNING, STAT_RUNNING)) {
-            throw new IllegalStateException("Already closed!");
+            logger.info("Already closed!");
+            return;
         }
     }
 
     public void closeAll() {
         boolean b = stat.compareAndSet(STAT_RUNNING, STAT_CLODED);
         if (!b) {
-            throw new IllegalStateException("Already closed!");
+            logger.info("Already closed!");
+            return;
         }
         for (WebDriver webDriver : webDriverList) {
             logger.info("Quit webDriver" + webDriver);
-            webDriver.quit();
-            webDriver = null;
+            webDriver.close();
         }
+        webDriverList.clear();
     }
 
 }
